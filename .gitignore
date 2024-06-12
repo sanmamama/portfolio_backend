@@ -1,0 +1,11 @@
+/rest/secrets.py
+/api/secrets.py
+*.pyc
+*.cpython-312.pyc
+/rest/__pycache__
+/api/__pycache__
+/static
+/media
+db.sqlite3
+/rest/migrations
+/api/migrations

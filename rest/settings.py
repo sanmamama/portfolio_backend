@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 	'rest_framework',
 	'api',
+	'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'corsheaders.middleware.CorsMiddleware',
+]
+
+#許可するオリジンを指定
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000', #react dev
+	'http://127.0.0.1:3000', #react dev
 ]
 
 ROOT_URLCONF = 'rest.urls'

@@ -29,6 +29,10 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+#ckeditor
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,6 +45,8 @@ INSTALLED_APPS = [
 	'rest_framework',
 	'api',
 	'corsheaders',
+	'ckeditor',
+    'ckeditor_uploader',
 ]
 
 MIDDLEWARE = [

@@ -6,7 +6,10 @@ from api import views
 
 router = DefaultRouter()
 router.register(r'user', views.UserViewSet)
+router.register(r'blog', views.BlogViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),  
+	path('ckeditor/', include('ckeditor_uploader.urls')),   
+	path('admin/', admin.site.urls),
+	path('api/', include(router.urls)),
 ]

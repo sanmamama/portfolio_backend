@@ -27,7 +27,7 @@ class Blog(models.Model):
 	img = models.ImageField(upload_to='media/')
 	created_at = models.DateTimeField()
 	updated_at = models.DateTimeField()
-	category_id = models.ForeignKey('Category', on_delete=models.CASCADE)
+	category = models.ForeignKey('Category', on_delete=models.CASCADE)
 	tag = models.ManyToManyField(Tag,blank=True, null=True)
 	likes = models.PositiveIntegerField(default=0)
 	def __str__(self):

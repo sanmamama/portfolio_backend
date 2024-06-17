@@ -7,6 +7,9 @@ from api import views
 router = DefaultRouter()
 router.register(r'user', views.UserViewSet)
 router.register(r'blog', views.BlogViewSet)
+router.register(r'category', views.CategoryViewSet)
+router.register(r'tag', views.TagViewSet)
+
 
 urlpatterns = [
 	path('ckeditor/', include('ckeditor_uploader.urls')),   

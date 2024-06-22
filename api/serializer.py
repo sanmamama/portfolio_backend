@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User,Blog,Category,Tag
+from .models import User,Blog,Category,Tag,Contact
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,4 +25,9 @@ class BlogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
         fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = '__all__'
 

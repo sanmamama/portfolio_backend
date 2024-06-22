@@ -2,8 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework import generics
 from .models import *
-from .serializer import UserSerializer,BlogSerializer,CategorySerializer,TagSerializer
+from .serializer import UserSerializer,BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -20,5 +21,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
+class ContactCreateView(viewsets.ModelViewSet):
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer
 
 

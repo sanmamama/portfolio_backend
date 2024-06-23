@@ -24,7 +24,8 @@ class BlogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
+        fields = '__all__'
+        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:

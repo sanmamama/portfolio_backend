@@ -127,6 +127,13 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static/react/build/static'),
 ]
 
+
+#MEDIA_DIR
+# mediaフォルダへの絶対パスを定義
+MEDIA_DIR = BASE_DIR / "media"
+MEDIA_ROOT = MEDIA_DIR
+MEDIA_URL = "/"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 

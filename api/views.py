@@ -11,7 +11,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 class BlogViewSet(viewsets.ModelViewSet):
-    queryset = Blog.objects.all()
+    queryset = Blog.objects.all().order_by('created_at').reverse()
     serializer_class = BlogSerializer
 
 class CategoryViewSet(viewsets.ModelViewSet):

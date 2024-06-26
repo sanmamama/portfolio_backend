@@ -5,9 +5,12 @@ from rest_framework.routers import DefaultRouter
 from api import views
 from django.conf import settings
 from django.conf.urls.static import static
+from api.views import LikeBlogView
+
+
 
 router = DefaultRouter()
-router.register(r'user', views.UserViewSet)
+#router.register(r'user', views.UserViewSet)
 router.register(r'blog', views.BlogFilterViewSet)
 router.register(r'category', views.CategoryViewSet)
 router.register(r'tag', views.TagViewSet)
@@ -18,4 +21,5 @@ urlpatterns = [
 	path('ckeditor/', include('ckeditor_uploader.urls')),   
 	path('admin/', admin.site.urls),
 	path('api/', include(router.urls)),
+	path('api/blog/<int:pk>/like/', LikeBlogView.as_view(), name='like'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

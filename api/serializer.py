@@ -1,12 +1,14 @@
 from rest_framework import serializers
+from dj_rest_auth.registration.serializers import RegisterSerializer
+from .models import Blog,Category,Tag,Contact
 
-from .models import User,Blog,Category,Tag,Contact
+class CustomRegisterSerializer(RegisterSerializer):
+    email = serializers.EmailField(required=True)
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('name', 'mail')
+    def get_cleaned_data(self):
+        data_dict = super().get_cleaned_data()
+        data_dict['email'] = self.validated_data.get('email', '')
+        return data_dict
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

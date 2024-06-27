@@ -1,21 +1,24 @@
 from rest_framework.views import APIView
-
+from dj_rest_auth.registration.views import RegisterView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins,viewsets
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
-from .filters import BlogFilter
 from rest_framework.decorators import action
+from .filters import BlogFilter
+from .serializer import CustomRegisterSerializer
+from dj_rest_auth.registration.views import ConfirmEmailView
 from .models import *
-from .serializer import UserSerializer,BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer
 
 
 
+class CustomConfirmEmailView(ConfirmEmailView):
+    #serializer_class = CustomRegisterSerializer
+    #template_name = 'account/register.html'
+    pass
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
 class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Blog.objects.all().order_by('created_at').reverse()

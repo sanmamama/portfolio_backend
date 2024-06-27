@@ -36,18 +36,42 @@ CKEDITOR_UPLOAD_PATH = "uploads/"
 # Application definition
 
 INSTALLED_APPS = [
+	'api',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'rest_framework',
-	'api',
 	'corsheaders',
 	'ckeditor',
     'ckeditor_uploader',
 	'django_filters',
+	
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+	
+	'rest_framework',
+	'rest_framework.authtoken',
+	
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+]
+
+AUTH_USER_MODEL = 'api.User'
+SITE_ID = 1
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True              
+ACCOUNT_UNIQUE_EMAIL = True                
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # 開発中にコンソールにメールを表示
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +83,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'corsheaders.middleware.CorsMiddleware',
+	'allauth.account.middleware.AccountMiddleware',  # 追加
 ]
 
 #許可するオリジンを指定
@@ -110,9 +135,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ja'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tokyo'
 
 USE_I18N = True
 
@@ -146,3 +171,5 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 6,
 }
+
+

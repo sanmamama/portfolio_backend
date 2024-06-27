@@ -13,7 +13,6 @@ class PostAdminForm(forms.ModelForm):
 class PostAdmin(admin.ModelAdmin):
     form = PostAdminForm
 
-admin.site.register(User)
 admin.site.register(Blog)
 admin.site.register(Tag)
 admin.site.register(Comment)

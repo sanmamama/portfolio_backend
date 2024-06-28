@@ -68,6 +68,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True                
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # 開発中にコンソールにメールを表示
+ACCOUNT_ADAPTER = 'api.adapters.CustomAccountAdapter'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',

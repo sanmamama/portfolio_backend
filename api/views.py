@@ -14,11 +14,12 @@ from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactS
 
 
 
+
+
 class CustomConfirmEmailView(ConfirmEmailView):
     #serializer_class = CustomRegisterSerializer
     #template_name = 'account/register.html'
     pass
-
 
 class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Blog.objects.all().order_by('created_at').reverse()

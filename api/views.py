@@ -8,18 +8,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .serializer import CustomRegisterSerializer
-from dj_rest_auth.registration.views import ConfirmEmailView
 from .models import *
 from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer
 
 
-
-
-
-class CustomConfirmEmailView(ConfirmEmailView):
-    #serializer_class = CustomRegisterSerializer
-    #template_name = 'account/register.html'
-    pass
 
 class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Blog.objects.all().order_by('created_at').reverse()

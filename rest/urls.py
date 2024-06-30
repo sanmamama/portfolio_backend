@@ -5,7 +5,7 @@ from rest_framework.routers import DefaultRouter
 from api import views
 from django.conf import settings
 from django.conf.urls.static import static
-from api.views import LikeBlogView,CustomConfirmEmailView
+from api.views import LikeBlogView
 
 
 
@@ -23,8 +23,6 @@ urlpatterns = [
 	path('api/', include(router.urls)),
 	path('api/blog/<int:pk>/like/', LikeBlogView.as_view(), name='like'),
 
-	#path('accounts/', include('allauth.urls')),
-	#re_path('api/auth/registration/account-confirm-email/(?P<key>[-:\w]+)/$', CustomConfirmEmailView.as_view(),name='account_confirm_email',),
 	path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
 	

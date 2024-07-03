@@ -1,5 +1,8 @@
 import django_filters
-from .models import Blog
+from .models import Blog,User
+
+
+#イカ、ブログ
 
 class BlogFilter(django_filters.FilterSet):
     category = django_filters.CharFilter(field_name='category__name', lookup_expr='icontains')

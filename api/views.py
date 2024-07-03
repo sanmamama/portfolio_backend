@@ -7,11 +7,23 @@ from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
-from .serializer import CustomRegisterSerializer
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
+#イカ、ポスッター
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+    pagination_class = None
+    
+    def get_queryset(self):
+        return User.objects.filter(email=self.request.user.email)
+
+
+#イカ、ブログ#
 
 class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Blog.objects.all().order_by('created_at').reverse()

@@ -1,14 +1,54 @@
 from rest_framework import serializers
+from .models import Blog,Category,Tag,Contact,User
 from dj_rest_auth.registration.serializers import RegisterSerializer
-from .models import Blog,Category,Tag,Contact
+from allauth.account.adapter import get_adapter
+import uuid
+
+
+
+#イカ、ポスッター
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email','uid','username')
+
 
 class CustomRegisterSerializer(RegisterSerializer):
-    email = serializers.EmailField(required=True)
+    id = serializers.UUIDField(default=uuid.uuid4)
+    email = serializers.EmailField(max_length=255)
+    username = serializers.CharField(max_length=255)
+    uid = serializers.CharField(max_length=255)
+    is_active = serializers.BooleanField(default=True)
+    is_staff = serializers.BooleanField(default=False)
+
+    class Meta:
+        model = User
+        fields = ('email','username','uid','password', 'last_login', 'superuser', 'is_active', 'is_staff')
+
 
     def get_cleaned_data(self):
-        data_dict = super().get_cleaned_data()
-        data_dict['email'] = self.validated_data.get('email', '')
-        return data_dict
+        data = super().get_cleaned_data()
+        #data['username'] = self.validated_data.get('username', '')
+        return data
+    
+    def save(self, request):
+        def createRandomStr(n):
+            import random, string
+            randlst = [random.choice(string.ascii_letters + string.digits) for i in range(n)]
+            return ''.join(randlst)
+        
+        adapter = get_adapter()
+        user = adapter.new_user(request)
+        self.cleaned_data = self.get_cleaned_data()
+        user.uid = createRandomStr(10)
+        user.save()
+        adapter.save_user(request, user, self)
+        return user
+
+
+
+#イカ、ブログ
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

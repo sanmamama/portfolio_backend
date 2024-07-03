@@ -12,6 +12,7 @@ class UserManager(BaseUserManager):
 
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
+        #user.username = email.split('@')[0]
         user.save(using=self._db)
 
         return user
@@ -26,10 +27,10 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     email = models.EmailField(max_length=255, unique=True)
-    username = models.CharField(max_length=255, blank=True)
+    username = models.CharField(max_length=255)
+    uid = models.CharField(max_length=255,unique=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

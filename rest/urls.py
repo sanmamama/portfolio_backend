@@ -17,6 +17,9 @@ router.register(r'contact', views.ContactCreateView)
 
 postterRouter = DefaultRouter()
 postterRouter.register(r'user', views.UserViewSet, basename='user')
+postterRouter.register(r'post', views.PostViewSet, basename='post')
+postterRouter.register(r'follow', views.FollowViewSet, basename='follow')
+postterRouter.register(r'like', views.LikeViewSet, basename='like')
 
 
 urlpatterns = [

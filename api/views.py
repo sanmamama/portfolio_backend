@@ -8,11 +8,30 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer
 from rest_framework.permissions import IsAuthenticated
 
 
 #イカ、ポスッター
+
+class LikeViewSet(viewsets.ReadOnlyModelViewSet):
+    #permission_classes = [IsAuthenticated]
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+
+class FollowViewSet(viewsets.ReadOnlyModelViewSet):
+    #permission_classes = [IsAuthenticated]
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+
+class PostViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Post.objects.all().order_by('created_at').reverse()
+    serializer_class = PostSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+    
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]

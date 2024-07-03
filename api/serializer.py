@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Blog,Category,Tag,Contact,User
+from .models import *
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from allauth.account.adapter import get_adapter
 import uuid
@@ -11,20 +11,42 @@ import uuid
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email','uid','username')
+        fields = ('email','uid','username', 'profile_statement' ,'avatar_imgurl')
+
+class PostSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
+    class Meta:
+        model = Post
+        fields = ['id', 'owner', 'content', 'created_at']
+        read_only_fields = ['created_at','owner']
+
+class LikeSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    post = PostSerializer
+    class Meta:
+        model = Like
+        fields = '__all__'
+
+class FollowSerializer(serializers.ModelSerializer):
+    follower = UserSerializer()
+    following = UserSerializer()
+    class Meta:
+        model = Follow
+        fields = '__all__'
+
 
 
 class CustomRegisterSerializer(RegisterSerializer):
     id = serializers.UUIDField(default=uuid.uuid4)
     email = serializers.EmailField(max_length=255)
     username = serializers.CharField(max_length=255)
-    uid = serializers.CharField(max_length=255)
-    is_active = serializers.BooleanField(default=True)
-    is_staff = serializers.BooleanField(default=False)
+    # uid = serializers.CharField(max_length=255)
+    # is_active = serializers.BooleanField(default=True)
+    # is_staff = serializers.BooleanField(default=False)
 
     class Meta:
         model = User
-        fields = ('email','username','uid','password', 'last_login', 'superuser', 'is_active', 'is_staff')
+        fields = ('email','username','uid','password', 'last_login', 'superuser', 'is_active', 'is_staff', 'profile_statement' ,'avatar_imgurl')
 
 
     def get_cleaned_data(self):

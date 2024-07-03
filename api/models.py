@@ -4,8 +4,50 @@ from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser,  PermissionsMixin
 import uuid
 
-class UserManager(BaseUserManager):
+#postter
 
+
+class Follow(models.Model):
+    follower = models.ForeignKey('User', related_name='follower', on_delete=models.CASCADE)
+    following = models.ForeignKey('User', related_name='following', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Post(models.Model):
+    owner = models.ForeignKey('User', verbose_name='オーナー', on_delete=models.CASCADE)
+    content = models.TextField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Like(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class List(models.Model):
+    """このオーナーがこのリストを作った"""
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    owner = models.ForeignKey('User', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ListMember(models.Model):
+    """中間テーブル このリストにこのユーザーが所属してる"""
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    list = models.ForeignKey('List', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Message(models.Model):
+    user_from = models.ForeignKey('User',related_name='messages_sent', on_delete=models.CASCADE)
+    user_to = models.ForeignKey('User',related_name='messages_received', on_delete=models.CASCADE)
+    content = models.TextField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('Users must have an email address')
@@ -27,10 +69,12 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
+    #id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=255)
     uid = models.CharField(max_length=255,unique=True)
+    avatar_imgurl = models.ImageField(blank=True)
+    profile_statement = models.CharField(max_length=255,blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

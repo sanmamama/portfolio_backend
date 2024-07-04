@@ -11,7 +11,7 @@ import uuid
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email','uid','username','avatar_imgurl', 'profile_statement' )
+        fields = ('id','email','uid','username','avatar_imgurl', 'profile_statement' )
 
 class PostSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
@@ -28,11 +28,12 @@ class LikeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class FollowSerializer(serializers.ModelSerializer):
-    follower = UserSerializer()
-    following = UserSerializer()
+    #follower = UserSerializer()
+    #following = UserSerializer()
     class Meta:
         model = Follow
         fields = '__all__'
+        read_only_fields = ['follower']
 
 
 
@@ -64,6 +65,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
         user.uid = createRandomStr(10)
+        user.avatar_imgurl = "default.png"
         user.save()
         adapter.save_user(request, user, self)
         return user

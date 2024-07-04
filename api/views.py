@@ -12,6 +12,7 @@ from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactS
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError
 
 
 #イカ、ポスッター
@@ -21,10 +22,32 @@ class LikeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
 
-class FollowViewSet(viewsets.ReadOnlyModelViewSet):
-    #permission_classes = [IsAuthenticated]
+class FollowViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        following_id = serializer.validated_data.get('following').id
+        follower_id = self.request.user.id
+
+        if following_id == follower_id:
+            raise ValidationError("自分自身をフォローすることはできません。")
+
+        existing_follow = Follow.objects.filter(follower_id=follower_id, following_id=following_id).first()
+        if existing_follow:
+            existing_follow.delete()
+            return Response({"message": "フォローを解除しました。"}, status=status.HTTP_200_OK)
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({"message": "フォローしました。"}, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save(follower=self.request.user)
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -45,19 +68,10 @@ class UserViewSet(viewsets.ModelViewSet):
         return User.objects.filter(email=self.request.user.email)
     
     def patch(self, request, *args, **kwargs):
-        # instanceの取得
         instance = get_object_or_404(User, pk=self.request.user.id)
-
-        # シリアライザの作成
-        print(request.data)
         serializer = UserSerializer(instance=instance, data=request.data, partial=True)
-
-        # バリデーション
         serializer.is_valid(raise_exception=True)
-
-        # DB更新
         serializer.save()
-
         return Response({'result':True})
 
 #イカ、ブログ#

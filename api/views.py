@@ -10,6 +10,8 @@ from .filters import BlogFilter
 from .models import *
 from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.shortcuts import get_object_or_404
 
 
 #イカ、ポスッター
@@ -33,14 +35,30 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
     
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
     pagination_class = None
+    parser_classes = [MultiPartParser, FormParser]
     
     def get_queryset(self):
         return User.objects.filter(email=self.request.user.email)
+    
+    def patch(self, request, *args, **kwargs):
+        # instanceの取得
+        instance = get_object_or_404(User, pk=self.request.user.id)
 
+        # シリアライザの作成
+        print(request.data)
+        serializer = UserSerializer(instance=instance, data=request.data, partial=True)
+
+        # バリデーション
+        serializer.is_valid(raise_exception=True)
+
+        # DB更新
+        serializer.save()
+
+        return Response({'result':True})
 
 #イカ、ブログ#
 

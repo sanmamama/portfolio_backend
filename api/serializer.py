@@ -11,7 +11,7 @@ import uuid
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email','uid','username', 'profile_statement' ,'avatar_imgurl')
+        fields = ('email','uid','username','avatar_imgurl', 'profile_statement' )
 
 class PostSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)

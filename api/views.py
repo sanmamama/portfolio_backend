@@ -22,10 +22,24 @@ class LikeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.GenericViewSetはlist無効（/へのGETメソッド無効）
     permission_classes = [IsAuthenticated]
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+
+    @action(detail=False, methods=['get'], url_path='following')
+    def following(self, request, *args, **kwargs):
+        user = request.user
+        queryset = self.get_queryset().filter(follower=user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='follower')
+    def follower(self, request, *args, **kwargs):
+        user = request.user
+        queryset = self.get_queryset().filter(following=user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

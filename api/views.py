@@ -13,6 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.pagination import PageNumberPagination
 
 
 #イカ、ポスッター
@@ -62,11 +64,44 @@ class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.
 
     def perform_create(self, serializer):
         serializer.save(follower=self.request.user)
+    
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Post.objects.all().order_by('created_at').reverse()
     serializer_class = PostSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        if instance.owner != request.user:
+            raise PermissionDenied("自分の投稿以外は編集できません。")
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.owner != request.user:
+            raise PermissionDenied("自分の投稿以外は削除できません。")
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='user/(?P<uid>[^/.]+)')
+    def posts_by_user(self, request, uid=None):
+        user = User.objects.filter(uid=uid).first()
+        if user:
+            posts = Post.objects.filter(owner=user)
+            paginator = PageNumberPagination()
+            #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
+            result_page = paginator.paginate_queryset(posts, request)
+            serializer = PostSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def get_queryset(self):
+        queryset = Post.objects.all().order_by('created_at').reverse() #後々修正
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -77,6 +112,14 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = None
     parser_classes = [MultiPartParser, FormParser]
+
+    @action(detail=False, methods=['get'], url_path='(?P<uid>[^/.]+)')
+    def user_data(self, request, uid=None):
+        user = User.objects.filter(uid=uid).first()
+        if user:
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
     
     def get_queryset(self):
         return User.objects.filter(email=self.request.user.email)

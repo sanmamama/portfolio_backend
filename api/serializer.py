@@ -8,13 +8,32 @@ import uuid
 
 #イカ、ポスッター
 
+
+
 class UserSerializer(serializers.ModelSerializer):
+    post_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+    follower_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id','email','uid','username','avatar_imgurl', 'profile_statement' )
+        fields = ('id','uid','username','avatar_imgurl', 'profile_statement','post_count','following_count','follower_count') #,'email'
+
+    def get_post_count(self, obj):#selfはシリアライザインスタンス自体を指しますが、objは現在シリアライザにバインドされているオブジェクト、すなわちシリアライザが処理しているモデルインスタンスを指します。
+        return Post.objects.filter(owner=obj).count()
+
+    def get_following_count(self, obj):
+        return Follow.objects.filter(follower=obj).count()
+
+    def get_follower_count(self, obj):
+        return Follow.objects.filter(following=obj).count()
+    
+    
+
 
 class PostSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
+
     class Meta:
         model = Post
         fields = ['id', 'owner', 'content', 'created_at']

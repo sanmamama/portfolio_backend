@@ -8,13 +8,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
+
+from django.db.models import Q
 
 
 #イカ、ポスッター
@@ -29,19 +31,37 @@ class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
 
-    @action(detail=False, methods=['get'], url_path='following')
-    def following(self, request, *args, **kwargs):
+    @action(detail=False, methods=['get'], url_path='me')
+    def me_following(self, request, *args, **kwargs):
         user = request.user
         queryset = self.get_queryset().filter(follower=user)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='(?P<uid>[^/.]+)/following')
+    def following(self, request, uid=None):
+        user = User.objects.filter(uid=uid).first()
+        if user:
+            queryset = self.get_queryset().filter(follower=user)
+            paginator = PageNumberPagination()
+            #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = FollowUserDetailSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=False, methods=['get'], url_path='follower')
-    def follower(self, request, *args, **kwargs):
-        user = request.user
-        queryset = self.get_queryset().filter(following=user)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    @action(detail=False, methods=['get'], url_path='(?P<uid>[^/.]+)/follower')
+    def follower(self, request, uid=None):
+        user = User.objects.filter(uid=uid).first()
+        if user:
+            queryset = self.get_queryset().filter(following=user)
+            paginator = PageNumberPagination()
+            #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
+            result_page = paginator.paginate_queryset(queryset, request)
+            serializer = FollowUserDetailSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -67,8 +87,14 @@ class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.
     
 
 class PostViewSet(viewsets.ModelViewSet):
+    class CustomPageNumberPagination(PageNumberPagination):
+        page_size = 6  # ここでページサイズを指定します
+
+    pagination_class = CustomPageNumberPagination
     permission_classes = [IsAuthenticated]
     serializer_class = PostSerializer
+    
+    
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -91,7 +117,7 @@ class PostViewSet(viewsets.ModelViewSet):
     def posts_by_user(self, request, uid=None):
         user = User.objects.filter(uid=uid).first()
         if user:
-            posts = Post.objects.filter(owner=user)
+            posts = Post.objects.filter(owner=user).order_by('created_at').reverse()
             paginator = PageNumberPagination()
             #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
             result_page = paginator.paginate_queryset(posts, request)
@@ -100,7 +126,8 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
     
     def get_queryset(self):
-        queryset = Post.objects.all().order_by('created_at').reverse() #後々修正
+        following_ids = Follow.objects.filter(follower_id=self.request.user.id).values('following_id')
+        queryset = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids)).order_by('-created_at')
         return queryset
 
     def perform_create(self, serializer):

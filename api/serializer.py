@@ -46,13 +46,19 @@ class LikeSerializer(serializers.ModelSerializer):
         model = Like
         fields = '__all__'
 
-class FollowSerializer(serializers.ModelSerializer):
-    #follower = UserSerializer()
-    #following = UserSerializer()
+class FollowSerializer(serializers.ModelSerializer): #idでやり取りのみ
     class Meta:
         model = Follow
-        fields = '__all__'
+        fields = ['follower','following']
         read_only_fields = ['follower']
+class FollowUserDetailSerializer(serializers.ModelSerializer): #フォロー・フォロワー一覧表示用にユーザー情報欲しい
+    follower = UserSerializer()
+    following = UserSerializer()
+
+    class Meta:
+        model = Follow
+        fields = ['follower','following']
+        read_only_fields = ['follower','following']
 
 
 

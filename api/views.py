@@ -33,7 +33,10 @@ class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         user_id = self.request.user.id
         post_id = serializer.validated_data.get('post').id
-        print(user_id,post_id)
+
+        if user_id == Post.objects.filter(id=post_id).first().owner_id:
+            raise ValidationError("自分のポストをいいねすることはできません。")
+
         post = get_object_or_404(Post, id=post_id)
         like, created = Like.objects.get_or_create(user=self.request.user, post=post)
         if not created:

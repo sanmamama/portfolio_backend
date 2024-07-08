@@ -145,8 +145,11 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
     
     def get_queryset(self):
-        following_ids = Follow.objects.filter(follower_id=self.request.user.id).values('following_id')
-        queryset = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids)).order_by('-created_at')
+        reply_ids = list(Reply.objects.filter(reply_to_id = self.request.user.id).values_list('post_id',flat=True))
+        print(reply_ids)
+        following_ids = list(Follow.objects.filter(follower_id=self.request.user.id).values_list('following_id',flat=True))
+        queryset = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=reply_ids)).order_by('-created_at')
+
         return queryset
 
     def perform_create(self, serializer):

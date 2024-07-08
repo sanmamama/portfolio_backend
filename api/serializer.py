@@ -55,6 +55,26 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_like_count(self, obj):
         return Like.objects.filter(post=obj).count()
+    
+    def create(self, validated_data):
+        content = validated_data.get('content', '')
+        post = Post.objects.create(**validated_data)
+
+        # リプライの処理
+        reply_usernames = [word[1:] for word in content.split() if word.startswith('@')]
+        for username in reply_usernames:
+            try:
+                reply_user = User.objects.get(uid=username)
+                Reply.objects.create(
+                    post=post,
+                    replier=validated_data['owner'],
+                    reply_to=reply_user
+                )
+            except User.DoesNotExist:
+                # ユーザーが存在しない場合の処理
+                pass
+
+        return post
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:

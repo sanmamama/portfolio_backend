@@ -5,7 +5,11 @@ from django.contrib.auth.models import AbstractBaseUser,  PermissionsMixin
 import uuid
 
 #postter
-
+class Reply(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    replier = models.ForeignKey('User', related_name='replies', on_delete=models.CASCADE)
+    reply_to = models.ForeignKey('User', related_name='replied_to', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Follow(models.Model):
     follower = models.ForeignKey('User', related_name='follower', on_delete=models.CASCADE)

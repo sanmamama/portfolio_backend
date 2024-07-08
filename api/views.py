@@ -21,10 +21,26 @@ from django.db.models import Q
 
 #イカ、ポスッター
 
-class LikeViewSet(viewsets.ReadOnlyModelViewSet):
-    #permission_classes = [IsAuthenticated]
+        
+
+class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_id = self.request.user.id
+        post_id = serializer.validated_data.get('post').id
+        print(user_id,post_id)
+        post = get_object_or_404(Post, id=post_id)
+        like, created = Like.objects.get_or_create(user=self.request.user, post=post)
+        if not created:
+            like.delete()  # 既に「いいね」している場合は「いいね」を解除
+            return Response({"message": "いいねを取り消しました"}, status=status.HTTP_200_OK)
+
+        return Response({"message": "いいねしました"}, status=status.HTTP_200_OK)
 
 class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.GenericViewSetはlist無効（/へのGETメソッド無効）
     permission_classes = [IsAuthenticated]

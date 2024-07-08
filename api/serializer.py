@@ -14,10 +14,13 @@ class UserSerializer(serializers.ModelSerializer):
     post_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     follower_count = serializers.SerializerMethodField()
+    following = serializers.SerializerMethodField()
+    follower = serializers.SerializerMethodField()
+    like = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id','uid','username','avatar_imgurl', 'profile_statement','post_count','following_count','follower_count') #,'email'
+        fields = ('id','uid','username','avatar_imgurl', 'profile_statement','post_count','following_count','follower_count','following','follower','like') #,'email'
 
     def get_post_count(self, obj):#selfはシリアライザインスタンス自体を指しますが、objは現在シリアライザにバインドされているオブジェクト、すなわちシリアライザが処理しているモデルインスタンスを指します。
         return Post.objects.filter(owner=obj).count()
@@ -28,29 +31,43 @@ class UserSerializer(serializers.ModelSerializer):
     def get_follower_count(self, obj):
         return Follow.objects.filter(following=obj).count()
     
+    def get_following(self, obj):
+        fillowing_idx = list(Follow.objects.filter(follower=obj).values_list('following', flat=True))
+        return fillowing_idx
     
-
+    def get_follower(self, obj):
+        fillower_idx = list(Follow.objects.filter(following=obj).values_list('follower', flat=True))
+        return fillower_idx
+    
+    def get_like(self, obj):
+        like_idx = list(Like.objects.filter(user=obj).values_list('post', flat=True))
+        return like_idx
+    
 
 class PostSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'owner', 'content', 'created_at']
-        read_only_fields = ['created_at','owner']
+        fields = ['id', 'owner', 'content', 'created_at', 'like_count']
+        read_only_fields = ['created_at','owner', 'like_count']
+
+    def get_like_count(self, obj):
+        return Like.objects.filter(post=obj).count()
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-    post = PostSerializer
     class Meta:
         model = Like
-        fields = '__all__'
+        fields = ['user','post']
+        read_only_fields = ['user']
 
 class FollowSerializer(serializers.ModelSerializer): #idでやり取りのみ
     class Meta:
         model = Follow
         fields = ['follower','following']
         read_only_fields = ['follower']
+
 class FollowUserDetailSerializer(serializers.ModelSerializer): #フォロー・フォロワー一覧表示用にユーザー情報欲しい
     follower = UserSerializer()
     following = UserSerializer()

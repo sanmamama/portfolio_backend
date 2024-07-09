@@ -8,20 +8,49 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Max
 
 from django.db.models import Q
 
 
 #イカ、ポスッター
 
+class MessageUserListViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = MessageUserListSerializer
+
+    def get_queryset(self):
+        # 最新のメッセージを取得
+        latest_messages = Message.objects.filter(Q(user_from_id=self.request.user.id)|Q(user_to_id=self.request.user.id)).order_by('created_at').reverse()
         
+        unique_messages = []
+        seen_pairs = set()
+
+        for message in latest_messages:
+            pair = tuple(sorted([message.user_from.id, message.user_to.id]))
+            if pair not in seen_pairs:
+                seen_pairs.add(pair)
+                unique_messages.append(message)
+        
+        return unique_messages
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        paginator = PageNumberPagination()
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = self.get_serializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+class MemberListViewSet(viewsets.ModelViewSet):
+    queryset = List.objects.all()
+    serializer_class = MemberListSerializer
 
 class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]

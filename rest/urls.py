@@ -20,6 +20,9 @@ postterRouter.register(r'user', views.UserViewSet, basename='user')
 postterRouter.register(r'post', views.PostViewSet, basename='post')
 postterRouter.register(r'follow', views.FollowViewSet, basename='follow')
 postterRouter.register(r'like', views.LikeViewSet, basename='like')
+postterRouter.register(r'message', views.MessageUserListViewSet, basename='message')
+postterRouter.register(r'memberlist', views.MemberListViewSet, basename='memberlist')
+
 
 
 urlpatterns = [

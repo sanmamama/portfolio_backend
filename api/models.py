@@ -30,7 +30,6 @@ class Like(models.Model):
 
 
 class List(models.Model):
-    """このオーナーがこのリストを作った"""
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -38,7 +37,6 @@ class List(models.Model):
 
 
 class ListMember(models.Model):
-    """中間テーブル このリストにこのユーザーが所属してる"""
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     list = models.ForeignKey('List', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

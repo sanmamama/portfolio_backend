@@ -3,12 +3,24 @@ from .models import *
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from allauth.account.adapter import get_adapter
 import uuid
-
+import re
 
 
 #イカ、ポスッター
 
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = '__all__'
+        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
 
+
+
+class MemberListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = List
+        fields = '__all__'
+        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
 
 class UserSerializer(serializers.ModelSerializer):
     post_count = serializers.SerializerMethodField()
@@ -43,6 +55,15 @@ class UserSerializer(serializers.ModelSerializer):
         like_idx = list(Like.objects.filter(user=obj).values_list('post', flat=True))
         return like_idx
     
+class MessageUserListSerializer(serializers.ModelSerializer):
+    user_from = UserSerializer()
+    user_to = UserSerializer()
+
+    class Meta:
+        model = Message
+        fields = ['id', 'user_from', 'user_to', 'content', 'created_at']
+        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
+    
 
 class PostSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
@@ -60,11 +81,15 @@ class PostSerializer(serializers.ModelSerializer):
         content = validated_data.get('content', '')
         post = Post.objects.create(**validated_data)
 
-        # リプライの処理
-        reply_usernames = [word[1:] for word in content.split() if word.startswith('@')]
+        
+        # リプライ対象のユーザー名を検出
+        reply_usernames = re.findall(r'@(\w+)', content)
+
         for username in reply_usernames:
             try:
                 reply_user = User.objects.get(uid=username)
+                content = re.sub(f'@{username}', f'<uid>{username}</uid>', content)
+                post.content = content
                 Reply.objects.create(
                     post=post,
                     replier=validated_data['owner'],
@@ -73,7 +98,9 @@ class PostSerializer(serializers.ModelSerializer):
             except User.DoesNotExist:
                 # ユーザーが存在しない場合の処理
                 pass
-
+        
+        post.content = content
+        post.save()
         return post
 
 class LikeSerializer(serializers.ModelSerializer):

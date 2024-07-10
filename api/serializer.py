@@ -7,14 +7,17 @@ import re
 
 
 #イカ、ポスッター
-
 class MessageSerializer(serializers.ModelSerializer):
+    user_to = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
     class Meta:
         model = Message
-        fields = '__all__'
-        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
+        fields = ['id', 'user_to', 'content', 'created_at']
+        read_only_fields = ['user_from', 'created_at']
 
-
+    def create(self, validated_data):
+        validated_data['user_from'] = self.context['request'].user
+        return super().create(validated_data)
 
 class MemberListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,6 +66,9 @@ class MessageUserListSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'user_from', 'user_to', 'content', 'created_at']
         #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
+        #read_only_fields = ['user_from', 'user_to']
+
+    
     
 
 class PostSerializer(serializers.ModelSerializer):

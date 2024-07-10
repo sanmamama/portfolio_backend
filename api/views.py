@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer 
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -21,6 +21,8 @@ from django.db.models import Q
 
 
 #イカ、ポスッター
+
+
 
 class MessageUserListViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -47,6 +49,32 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
         result_page = paginator.paginate_queryset(queryset, request)
         serializer = self.get_serializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='(?P<id>\d+)')
+    def message_by_user(self, request, id=None):
+        queryset = Message.objects.filter(Q(user_from_id=id,user_to_id=self.request.user.id)|Q(user_to_id=id,user_from_id=self.request.user.id)).order_by('created_at').reverse()
+        paginator = PageNumberPagination()
+        #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = self.get_serializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return MessageUserListSerializer
+        elif self.request.method == 'POST':
+            return MessageSerializer
+        return super().get_serializer_class()
+
+    def perform_create(self, serializer):
+        serializer.save(user_from=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class MemberListViewSet(viewsets.ModelViewSet):
     queryset = List.objects.all()

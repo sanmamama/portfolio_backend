@@ -22,6 +22,9 @@ postterRouter.register(r'follow', views.FollowViewSet, basename='follow')
 postterRouter.register(r'like', views.LikeViewSet, basename='like')
 postterRouter.register(r'message', views.MessageUserListViewSet, basename='message')
 postterRouter.register(r'memberlist', views.MemberListViewSet, basename='memberlist')
+postterRouter.register(r'listdetail', views.MemberListDetailViewSet, basename='listdetail')
+
+
 
 
 

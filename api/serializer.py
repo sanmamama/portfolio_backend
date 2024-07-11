@@ -19,11 +19,7 @@ class MessageSerializer(serializers.ModelSerializer):
         validated_data['user_from'] = self.context['request'].user
         return super().create(validated_data)
 
-class MemberListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = List
-        fields = '__all__'
-        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
+
 
 class UserSerializer(serializers.ModelSerializer):
     post_count = serializers.SerializerMethodField()
@@ -65,10 +61,20 @@ class MessageUserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'user_from', 'user_to', 'content', 'created_at']
-        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
-        #read_only_fields = ['user_from', 'user_to']
 
-    
+class MemberListSerializer(serializers.ModelSerializer):
+    owner = UserSerializer()
+    class Meta:
+        model = List
+        fields = '__all__'
+
+class MemberListDetailSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    #list = MemberListSerializer()
+
+    class Meta:
+        model = ListMember
+        fields = '__all__'
     
 
 class PostSerializer(serializers.ModelSerializer):

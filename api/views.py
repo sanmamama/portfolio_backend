@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -77,10 +77,34 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class MemberListViewSet(viewsets.ModelViewSet):
-    queryset = List.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = MemberListSerializer
 
+    def get_queryset(self):
+        queryset = List.objects.filter(owner_id=self.request.user.id)
+        return queryset
+    
+class MemberListDetailViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = MemberListDetailSerializer
+
+    @action(detail=False, methods=['get'], url_path='(?P<id>\d+)')
+    def message_by_user(self, request, id=None):
+        queryset = ListMember.objects.filter(list_id=id,list_id__owner=self.request.user.id)
+        paginator = PageNumberPagination()
+        #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = self.get_serializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def get_queryset(self):
+        queryset = ListMember.objects.filter(list_id__owner=self.request.user.id)
+        return queryset
+    
+    
+
 class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
+
     permission_classes = [IsAuthenticated]
     queryset = Like.objects.all()
     serializer_class = LikeSerializer

@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -78,11 +78,22 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
 
 class MemberListViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = MemberListSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return MemberListSerializer
+        elif self.request.method == 'POST':
+            return MemberListCreateSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
-        queryset = List.objects.filter(owner_id=self.request.user.id)
-        return queryset
+        list_id = self.request.query_params.get('id', None)
+        if list_id:
+            return List.objects.filter(id=list_id)
+        return List.objects.filter(owner_id=self.request.user.id)
+    
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
     
 class MemberListDetailViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -227,7 +238,6 @@ class PostViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         reply_ids = list(Reply.objects.filter(reply_to_id = self.request.user.id).values_list('post_id',flat=True))
-        print(reply_ids)
         following_ids = list(Follow.objects.filter(follower_id=self.request.user.id).values_list('following_id',flat=True))
         queryset = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=reply_ids)).order_by('-created_at')
 
@@ -242,7 +252,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = None
     parser_classes = [MultiPartParser, FormParser]
-
+    
     @action(detail=False, methods=['get'], url_path='(?P<uid>[^/.]+)')
     def user_data(self, request, uid=None):
         user = User.objects.filter(uid=uid).first()
@@ -252,6 +262,12 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
     
     def get_queryset(self):
+        user_id = self.request.query_params.get('id', None)
+        if user_id:
+            return User.objects.filter(id=user_id)
+        q = self.request.query_params.get('q', None)
+        if q:
+            return User.objects.filter(Q(uid__icontains=q)|Q(username__icontains=q))
         return User.objects.filter(email=self.request.user.email)
     
     def patch(self, request, *args, **kwargs):

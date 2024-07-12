@@ -66,7 +66,14 @@ class MemberListSerializer(serializers.ModelSerializer):
     owner = UserSerializer()
     class Meta:
         model = List
-        fields = '__all__'
+        fields = ['id','name','description','created_at','owner']
+        read_only_fields = ['created_at','owner']
+
+class MemberListCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = List
+        fields = ['name','description','created_at','owner']
+        read_only_fields = ['created_at','owner']
 
 class MemberListDetailSerializer(serializers.ModelSerializer):
     user = UserSerializer()

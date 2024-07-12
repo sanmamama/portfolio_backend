@@ -64,9 +64,14 @@ class MessageUserListSerializer(serializers.ModelSerializer):
 
 class MemberListSerializer(serializers.ModelSerializer):
     owner = UserSerializer()
+    user_count = serializers.SerializerMethodField()
+
+    def get_user_count(self, obj):
+        return ListMember.objects.filter(list=obj).count()
+
     class Meta:
         model = List
-        fields = ['id','name','description','created_at','owner']
+        fields = ['id','name','description','created_at','owner','user_count']
         read_only_fields = ['created_at','owner']
 
 class MemberListCreateSerializer(serializers.ModelSerializer):

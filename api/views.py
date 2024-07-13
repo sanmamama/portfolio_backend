@@ -241,6 +241,11 @@ class PostViewSet(viewsets.ModelViewSet):
         following_ids = list(Follow.objects.filter(follower_id=self.request.user.id).values_list('following_id',flat=True))
         queryset = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=reply_ids)).order_by('-created_at')
 
+        query = self.request.query_params.get('q', None)
+        if query:
+            return Post.objects.filter(Q(content__icontains=query)|Q(owner__username__icontains=query)|Q(owner__uid__icontains=query))
+        
+
         return queryset
 
     def perform_create(self, serializer):

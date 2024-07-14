@@ -243,7 +243,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
         query = self.request.query_params.get('q', None)
         if query:
-            return Post.objects.filter(Q(content__icontains=query)|Q(owner__username__icontains=query)|Q(owner__uid__icontains=query))
+            return Post.objects.filter(Q(content__icontains=query)|Q(owner__username__icontains=query)|Q(owner__uid__icontains=query)).order_by('-created_at')
         
 
         return queryset

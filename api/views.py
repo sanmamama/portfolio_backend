@@ -84,16 +84,21 @@ class MemberListViewSet(viewsets.ModelViewSet):
             return MemberListSerializer
         elif self.request.method == 'POST':
             return MemberListCreateSerializer
+        elif self.request.method == 'PATCH':
+            return MemberListCreateSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
         list_id = self.request.query_params.get('id', None)
+        
         if list_id:
-            return List.objects.filter(id=list_id)
+            return List.objects.filter(id=list_id,owner_id=self.request.user.id)
         return List.objects.filter(owner_id=self.request.user.id)
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    
     
 class MemberListDetailViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

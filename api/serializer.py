@@ -34,10 +34,11 @@ class UserSerializer(serializers.ModelSerializer):
     following = serializers.SerializerMethodField()
     follower = serializers.SerializerMethodField()
     like = serializers.SerializerMethodField()
+    repost = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id','uid','username','avatar_imgurl', 'profile_statement','post_count','following_count','follower_count','following','follower','like') #,'email'
+        fields = ('id','uid','username','avatar_imgurl', 'profile_statement','post_count','following_count','follower_count','following','follower','like','repost') #,'email'
 
     def get_post_count(self, obj):#selfはシリアライザインスタンス自体を指しますが、objは現在シリアライザにバインドされているオブジェクト、すなわちシリアライザが処理しているモデルインスタンスを指します。
         return Post.objects.filter(owner=obj).count()
@@ -59,6 +60,10 @@ class UserSerializer(serializers.ModelSerializer):
     def get_like(self, obj):
         like_idx = list(Like.objects.filter(user=obj).values_list('post', flat=True))
         return like_idx
+    
+    def get_repost(self, obj):
+        repost_idx = list(Repost.objects.filter(user=obj).values_list('post', flat=True))
+        return repost_idx
     
 class MessageUserListSerializer(serializers.ModelSerializer):
     user_from = UserSerializer()

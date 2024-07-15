@@ -36,11 +36,14 @@ class RepostViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
 
         if Repost.objects.filter(user=user, post=post).exists():
-            return Response({"detail": "You have already reposted this post."}, status=status.HTTP_400_BAD_REQUEST)
+            Repost.objects.filter(user=user, post=post).delete()
+            return Response({"detail": "this post deleted."}, status=status.HTTP_400_BAD_REQUEST)
 
         repost = Repost(user=user, post=post)
         repost.save()
         return Response({"detail": "Reposted successfully."}, status=status.HTTP_201_CREATED)
+    
+
 
 class MessageUserListViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -149,8 +152,8 @@ class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
         user_id = self.request.user.id
         post_id = serializer.validated_data.get('post').id
 
-        if user_id == Post.objects.filter(id=post_id).first().owner_id:
-            raise ValidationError("自分のポストをいいねすることはできません。")
+        # if user_id == Post.objects.filter(id=post_id).first().owner_id:
+        #     raise ValidationError("自分のポストをいいねすることはできません。")
 
         post = get_object_or_404(Post, id=post_id)
         like, created = Like.objects.get_or_create(user=self.request.user, post=post)

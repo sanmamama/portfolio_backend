@@ -7,6 +7,12 @@ import re
 
 
 #イカ、ポスッター
+
+class RepostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repost
+        fields = ['id', 'user', 'post', 'created_at']
+
 class MessageSerializer(serializers.ModelSerializer):
     user_to = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
@@ -92,14 +98,18 @@ class MemberListDetailSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     like_count = serializers.SerializerMethodField()
+    repost_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'owner', 'content', 'created_at', 'like_count']
-        read_only_fields = ['created_at','owner', 'like_count']
+        fields = ['id', 'owner', 'content', 'created_at', 'like_count','repost_count']
+        read_only_fields = ['created_at','owner', 'like_count','repost_count']
 
     def get_like_count(self, obj):
         return Like.objects.filter(post=obj).count()
+    
+    def get_repost_count(self, obj):
+        return Repost.objects.filter(post=obj).count()
     
     def create(self, validated_data):
         content = validated_data.get('content', '')

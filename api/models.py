@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractBaseUser,  PermissionsMixin
 import uuid
 
 #postter
+
 class Reply(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
     replier = models.ForeignKey('User', related_name='replies', on_delete=models.CASCADE)
@@ -86,6 +87,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    
+class Repost(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'post')
 
 
 #ブログアプリ

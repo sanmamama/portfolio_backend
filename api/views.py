@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -22,7 +22,25 @@ from django.db.models import Q
 
 #イカ、ポスッター
 
+class RepostViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Repost.objects.all()
+    serializer_class = RepostSerializer
 
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        post_id = request.data.get('post')
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if Repost.objects.filter(user=user, post=post).exists():
+            return Response({"detail": "You have already reposted this post."}, status=status.HTTP_400_BAD_REQUEST)
+
+        repost = Repost(user=user, post=post)
+        repost.save()
+        return Response({"detail": "Reposted successfully."}, status=status.HTTP_201_CREATED)
 
 class MessageUserListViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -90,7 +108,7 @@ class MemberListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         list_id = self.request.query_params.get('id', None)
-        
+
         if list_id:
             return List.objects.filter(id=list_id,owner_id=self.request.user.id)
         return List.objects.filter(owner_id=self.request.user.id)

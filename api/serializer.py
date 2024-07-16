@@ -104,10 +104,12 @@ class PostSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     like_count = serializers.SerializerMethodField()
     repost_count = serializers.SerializerMethodField()
+    repost_user = serializers.SerializerMethodField()
+    repost_created_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'owner', 'content', 'created_at', 'like_count','repost_count']
+        fields = ['id', 'owner', 'content', 'created_at', 'like_count','repost_count', 'repost_user', 'repost_created_at']
         read_only_fields = ['created_at','owner', 'like_count','repost_count']
 
     def get_like_count(self, obj):
@@ -116,11 +118,20 @@ class PostSerializer(serializers.ModelSerializer):
     def get_repost_count(self, obj):
         return Repost.objects.filter(post=obj).count()
     
+    def get_repost_user(self, obj):
+        if hasattr(obj, 'repost'):
+            return UserSerializer(obj.repost.user).data
+        return None
+
+    def get_repost_created_at(self, obj):
+        if hasattr(obj, 'repost'):
+            return obj.repost.created_at
+        return None
+    
     def create(self, validated_data):
         content = validated_data.get('content', '')
         post = Post.objects.create(**validated_data)
-
-        
+  
         # リプライ対象のユーザー名を検出
         reply_usernames = re.findall(r'@(\w+)', content)
 
@@ -141,6 +152,8 @@ class PostSerializer(serializers.ModelSerializer):
         post.content = content
         post.save()
         return post
+    
+
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:

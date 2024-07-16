@@ -263,16 +263,39 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
     
     def get_queryset(self):
-        reply_ids = list(Reply.objects.filter(reply_to_id = self.request.user.id).values_list('post_id',flat=True))
-        following_ids = list(Follow.objects.filter(follower_id=self.request.user.id).values_list('following_id',flat=True))
-        queryset = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=reply_ids)).order_by('-created_at')
-
+        # 検索
         query = self.request.query_params.get('q', None)
         if query:
             return Post.objects.filter(Q(content__icontains=query)|Q(owner__username__icontains=query)|Q(owner__uid__icontains=query)).order_by('-created_at')
         
+        reply_ids = list(Reply.objects.filter(reply_to_id = self.request.user.id).values_list('post_id',flat=True))
+        following_ids = list(Follow.objects.filter(follower_id=self.request.user.id).values_list('following_id',flat=True))
 
-        return queryset
+        posts = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=reply_ids))
+        reposts = Repost.objects.filter(Q(user_id=self.request.user.id) | Q(user_id__in=following_ids)).select_related('post')
+
+        # 投稿とリツイートを統合
+        timeline_posts = list(posts)
+        timeline_reposts = [repost.post for repost in reposts]
+        for repost in reposts:
+            repost.post.repost = repost  # リポスト情報をポストに追加
+            #repostの方ソート用に
+            repost.post.sort = repost.created_at
+
+        #postの方ソート用に
+        for post in posts:
+            post.sort = post.created_at
+        
+        timeline = timeline_posts + timeline_reposts
+        timeline = sorted(timeline, key=lambda x: x.sort, reverse=True)
+
+        #ソート用に使ったものを消します
+        for post in timeline:
+            if hasattr(post, 'sort'):
+                delattr(post, 'sort')
+
+        return timeline
+    
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

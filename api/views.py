@@ -254,10 +254,32 @@ class PostViewSet(viewsets.ModelViewSet):
     def posts_by_user(self, request, uid=None):
         user = User.objects.filter(uid=uid).first()
         if user:
-            posts = Post.objects.filter(owner=user).order_by('created_at').reverse()
+            posts = Post.objects.filter(owner=user)
+            reposts = Repost.objects.filter(user_id=user).select_related('post')
+            # 投稿とリツイートを統合
+            timeline_posts = list(posts)
+            timeline_reposts = [repost.post for repost in reposts]
+            for repost in reposts:
+                repost.post.repost = repost  # リポスト情報をポストに追加
+                #repostの方ソート用に
+                repost.post.sort = repost.created_at
+
+            #postの方ソート用に
+            for post in posts:
+                post.sort = post.created_at
+            
+            timeline = timeline_posts + timeline_reposts
+            timeline = sorted(timeline, key=lambda x: x.sort, reverse=True)
+
+            #ソート用に使ったものを消します
+            for post in timeline:
+                if hasattr(post, 'sort'):
+                    delattr(post, 'sort')
+
+
             paginator = PageNumberPagination()
             #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
-            result_page = paginator.paginate_queryset(posts, request)
+            result_page = paginator.paginate_queryset(timeline, request)
             serializer = PostSerializer(result_page, many=True)
             return paginator.get_paginated_response(serializer.data)
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)

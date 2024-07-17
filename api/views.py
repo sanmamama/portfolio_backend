@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -21,6 +21,35 @@ from django.db.models import Q
 
 
 #イカ、ポスッター
+
+class AddMemberViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddMemberSerializer
+
+    def create(self, request, *args, **kwargs):
+        list_id = request.data.get('list')
+        user_id = request.data.get('user')
+        
+        try:
+            # リストの所有者を確認
+            list_instance = List.objects.get(id=list_id)
+            if list_instance.owner.id != self.request.user.id:
+                return Response({'error': 'You do not have permission to modify this list.'}, status=status.HTTP_403_FORBIDDEN)
+        except List.DoesNotExist:
+            return Response({'error': 'List not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+        try:
+            member = ListMember.objects.get(list_id=list_id, user_id=user_id)
+            member.delete()
+            return Response({'message': 'Member removed successfully.'}, status=status.HTTP_200_OK)
+        except ListMember.DoesNotExist:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    
 
 class RepostViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

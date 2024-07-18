@@ -80,13 +80,10 @@ class MessageUserListSerializer(serializers.ModelSerializer):
 
 class MemberListSerializer(serializers.ModelSerializer):
     owner = UserSerializer()
-
     user_ids = serializers.SerializerMethodField()
 
     def get_user_ids(self, obj):
         return ListMember.objects.filter(list=obj).values_list('user_id', flat=True)
-
-
 
     class Meta:
         model = List

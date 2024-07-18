@@ -162,6 +162,21 @@ class MemberListDetailViewSet(viewsets.ModelViewSet):
         result_page = paginator.paginate_queryset(queryset, request)
         serializer = self.get_serializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
+    
+    @action(detail=False, methods=['delete'], url_path='delete')
+    def delete_by_ids(self, request):
+        list_id = request.query_params.get('list_id')
+        user_id = request.query_params.get('user_id')
+
+        if not list_id or not user_id:
+            return Response({'error': 'list_id and user_id are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            member = ListMember.objects.get(list_id=list_id, user_id=user_id)
+            member.delete()
+            return Response({'message': 'Member removed successfully.'}, status=status.HTTP_204_NO_CONTENT)
+        except ListMember.DoesNotExist:
+            return Response({'error': 'Member not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     def get_queryset(self):
         queryset = ListMember.objects.filter(list_id__owner=self.request.user.id)

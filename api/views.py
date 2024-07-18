@@ -274,8 +274,6 @@ class PostViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
     permission_classes = [IsAuthenticated]
     serializer_class = PostSerializer
-    
-    
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -286,6 +284,7 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
+
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -329,6 +328,8 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
     
     def get_queryset(self):
+        if self.request.method == "DELETE":
+            return Post.objects.all()
         # 検索
         query = self.request.query_params.get('q', None)
         if query:

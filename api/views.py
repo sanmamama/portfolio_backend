@@ -16,6 +16,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Max
+from django.db.models import F
 
 from django.db.models import Q
 
@@ -323,29 +324,38 @@ class PostViewSet(viewsets.ModelViewSet):
             paginator = PageNumberPagination()
             #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
             result_page = paginator.paginate_queryset(timeline, request)
+            
+            print(f"ユーザープロフィール{len(result_page)}")
+            #view_count
+            if result_page is not None:
+                # ページネーションされた結果のポストのview_countをインクリメント
+                Post.objects.filter(pk__in=[post.id for post in result_page]).update(view_count=F('view_count') + 1)
+
             serializer = PostSerializer(result_page, many=True)
             return paginator.get_paginated_response(serializer.data)
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
-    
+
     def get_queryset(self):
+        # DELETEメソッドの際
         if self.request.method == "DELETE":
             return Post.objects.all()
-        # 検索
+        
+        # 検索機能
         query = self.request.query_params.get('q', None)
         if query:
-            return Post.objects.filter(Q(content__icontains=query)|Q(owner__username__icontains=query)|Q(owner__uid__icontains=query)).order_by('-created_at')
+            queryset = Post.objects.filter(Q(content__icontains=query)|Q(owner__username__icontains=query)|Q(owner__uid__icontains=query)).order_by('-created_at')
+            return queryset
         
+        # デフォルト　通常の投稿＋リツイート投稿
         reply_ids = list(Reply.objects.filter(reply_to_id = self.request.user.id).values_list('post_id',flat=True))
         following_ids = list(Follow.objects.filter(follower_id=self.request.user.id).values_list('following_id',flat=True))
-
         posts = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=reply_ids))
         reposts = Repost.objects.filter(Q(user_id=self.request.user.id) | Q(user_id__in=following_ids)).select_related('post')
 
-        # 投稿とリツイートを統合
         timeline_posts = list(posts)
         timeline_reposts = [repost.post for repost in reposts]
         for repost in reposts:
-            repost.post.repost = repost  # リポスト情報をポストに追加
+            repost.post.repost = repost
             #repostの方ソート用に
             repost.post.sort = repost.created_at
 
@@ -361,7 +371,22 @@ class PostViewSet(viewsets.ModelViewSet):
             if hasattr(post, 'sort'):
                 delattr(post, 'sort')
 
-        return timeline
+        queryset = timeline
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        print(f"デフォルト{len(page)}")
+        if page is not None:
+            # ページネーションされた結果のポストのview_countをインクリメント
+            Post.objects.filter(pk__in=[post.id for post in page]).update(view_count=F('view_count') + 1)
+            serializer = self.get_serializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
 
     def perform_create(self, serializer):

@@ -19,9 +19,10 @@ class Follow(models.Model):
 
 
 class Post(models.Model):
-    owner = models.ForeignKey('User', verbose_name='オーナー', on_delete=models.CASCADE)
+    owner = models.ForeignKey('User', on_delete=models.CASCADE)
     content = models.TextField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+    view_count = models.PositiveIntegerField(default=0)
 
 
 class Like(models.Model):

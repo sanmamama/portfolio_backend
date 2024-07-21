@@ -141,9 +141,9 @@ class MemberListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         list_id = self.request.query_params.get('id', None)
-
         if list_id:
             return List.objects.filter(id=list_id,owner_id=self.request.user.id)
+        
         return List.objects.filter(owner_id=self.request.user.id)
     
     def perform_create(self, serializer):
@@ -325,7 +325,7 @@ class PostViewSet(viewsets.ModelViewSet):
             #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
             result_page = paginator.paginate_queryset(timeline, request)
             
-            print(f"ユーザープロフィール{len(result_page)}")
+            #print(f"ユーザープロフィール{len(result_page)}")
             #view_count
             if result_page is not None:
                 # ページネーションされた結果のポストのview_countをインクリメント
@@ -378,7 +378,7 @@ class PostViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(queryset, request)
-        print(f"デフォルト{len(page)}")
+        #print(f"デフォルト{len(page)}")
         if page is not None:
             # ページネーションされた結果のポストのview_countをインクリメント
             Post.objects.filter(pk__in=[post.id for post in page]).update(view_count=F('view_count') + 1)

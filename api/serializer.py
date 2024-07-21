@@ -91,9 +91,14 @@ class MemberListSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at','owner']
 
 class MemberListCreateSerializer(serializers.ModelSerializer):
+    user_ids = serializers.SerializerMethodField()
+
+    def get_user_ids(self, obj):
+        return ListMember.objects.filter(list=obj).values_list('user_id', flat=True)
+    
     class Meta:
         model = List
-        fields = ['name','description','created_at','owner']
+        fields = ['id','name','description','created_at','owner','user_ids']
         read_only_fields = ['created_at','owner']
 
 class MemberListDetailSerializer(serializers.ModelSerializer):

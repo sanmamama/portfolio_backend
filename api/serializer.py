@@ -5,6 +5,22 @@ from allauth.account.adapter import get_adapter
 import uuid
 import re
 
+#
+
+from rest_framework import serializers
+from django.conf import settings
+
+class AbsoluteURLField(serializers.Field):
+    def to_representation(self, value):
+        request = self.context.get('request')
+        if hasattr(value, 'url'):
+            url = value.url
+        else:
+            url = value
+        if request is not None and not url.startswith(('http://', 'https://')):
+            ret = request.build_absolute_uri(url)
+            return ret
+        return url
 
 #イカ、ポスッター
 
@@ -33,6 +49,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar_imgurl = AbsoluteURLField()
     post_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     follower_count = serializers.SerializerMethodField()
@@ -40,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
     follower = serializers.SerializerMethodField()
     like = serializers.SerializerMethodField()
     repost = serializers.SerializerMethodField()
+    
 
     class Meta:
         model = User

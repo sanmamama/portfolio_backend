@@ -114,7 +114,7 @@ class Blog(models.Model):
 	created_at = models.DateTimeField()
 	updated_at = models.DateTimeField()
 	category = models.ForeignKey('Category', on_delete=models.CASCADE)
-	tag = models.ManyToManyField(Tag,blank=True, null=True)
+	tag = models.ManyToManyField(Tag,blank=True)
 	likes = models.PositiveIntegerField(default=0)
 	def __str__(self):
 		return self.title

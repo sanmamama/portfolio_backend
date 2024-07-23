@@ -101,7 +101,7 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
     
-    @action(detail=False, methods=['get'], url_path='(?P<id>\d+)')
+    @action(detail=False, methods=['get'], url_path=r'(?P<id>\d+)')
     def message_by_user(self, request, id=None):
         queryset = Message.objects.filter(Q(user_from_id=id,user_to_id=self.request.user.id)|Q(user_to_id=id,user_from_id=self.request.user.id)).order_by('created_at').reverse()
         paginator = PageNumberPagination()
@@ -155,7 +155,7 @@ class MemberListDetailViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = MemberListDetailSerializer
 
-    @action(detail=False, methods=['get'], url_path='(?P<id>\d+)')
+    @action(detail=False, methods=['get'], url_path=r'(?P<id>\d+)')
     def message_by_user(self, request, id=None):
         queryset = ListMember.objects.filter(list_id=id,list_id__owner=self.request.user.id)
         paginator = PageNumberPagination()
@@ -331,7 +331,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 # ページネーションされた結果のポストのview_countをインクリメント
                 Post.objects.filter(pk__in=[post.id for post in result_page]).update(view_count=F('view_count') + 1)
 
-            serializer = PostSerializer(result_page, many=True)
+            serializer = PostSerializer(result_page, many=True, context={'request': request})
             return paginator.get_paginated_response(serializer.data)
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -399,11 +399,11 @@ class UserViewSet(viewsets.ModelViewSet):
     pagination_class = None
     parser_classes = [MultiPartParser, FormParser]
     
-    @action(detail=False, methods=['get'], url_path='(?P<uid>[^/.]+)')
+    @action(detail=False, methods=['get'], url_path=r'(?P<uid>[^/.]+)')
     def user_data(self, request, uid=None):
         user = User.objects.filter(uid=uid).first()
         if user:
-            serializer = UserSerializer(user)
+            serializer = UserSerializer(user, context={'request': request})
             return Response(serializer.data)
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -418,10 +418,11 @@ class UserViewSet(viewsets.ModelViewSet):
     
     def patch(self, request, *args, **kwargs):
         instance = get_object_or_404(User, pk=self.request.user.id)
-        serializer = UserSerializer(instance=instance, data=request.data, partial=True)
+        serializer = UserSerializer(instance=instance, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'result':True})
+        
+        return Response(serializer.data)
 
 #イカ、ブログ#
 

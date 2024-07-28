@@ -222,8 +222,12 @@ class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
 
         post = get_object_or_404(Post, id=post_id)
         like, created = Like.objects.get_or_create(user=self.request.user, post=post)
+        if self.request.user != post.owner:
+            notification, _ = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="like",content=post.content)
         if not created:
             like.delete()  # 既に「いいね」している場合は「いいね」を解除
+            if self.request.user != post.owner:
+                notification.delete()
             return Response({"message": "いいねを取り消しました"}, status=status.HTTP_200_OK)
 
         return Response({"message": "いいねしました"}, status=status.HTTP_200_OK)

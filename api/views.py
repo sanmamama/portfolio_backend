@@ -2,13 +2,13 @@ from rest_framework.views import APIView
 from dj_rest_auth.registration.views import RegisterView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import mixins,viewsets
+from rest_framework import mixins,viewsets,permissions
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -22,6 +22,26 @@ from django.db.models import Q
 
 
 #イカ、ポスッター
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all().order_by('-created_at')
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # ログインユーザーに関連する通知のみを返す
+        return Notification.objects.filter(receiver=self.request.user).order_by('-created_at')
+
+    @action(detail=False, methods=['post'])
+    def mark_as_read(self, request):
+        # 通知を既読にする
+        ids = request.data.get('ids', [])
+        Notification.objects.filter(id__in=ids, receiver=request.user).update(is_read=True)
+        return Response({"status": "notifications marked as read"})
+
+    def perform_create(self, serializer):
+        # 通知を作成するとき、送信者と受信者を設定する
+        serializer.save(sender=self.request.user)
 
 class AddMemberViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -103,7 +123,7 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path=r'(?P<id>\d+)')
     def message_by_user(self, request, id=None):
-        queryset = Message.objects.filter(Q(user_from_id=id,user_to_id=self.request.user.id)|Q(user_to_id=id,user_from_id=self.request.user.id)).order_by('created_at').reverse()
+        queryset = Message.objects.filter(Q(user_from_id=id,user_to_id=self.request.user.id)|Q(user_to_id=id,user_from_id=self.request.user.id)).order_by('created_at')
         paginator = PageNumberPagination()
         #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
         result_page = paginator.paginate_queryset(queryset, request)

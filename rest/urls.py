@@ -25,6 +25,7 @@ postterRouter.register(r'memberlist', views.MemberListViewSet, basename='memberl
 postterRouter.register(r'listdetail', views.MemberListDetailViewSet, basename='listdetail')
 postterRouter.register(r'addmember', views.AddMemberViewSet, basename='addmember')
 postterRouter.register(r'repost', views.RepostViewSet, basename='repost')
+postterRouter.register(r'notification', views.NotificationViewSet,basename='notification')
 
 
 

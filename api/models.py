@@ -6,6 +6,8 @@ import uuid
 
 #postter
 
+
+
 class Reply(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
     replier = models.ForeignKey('User', related_name='replies', on_delete=models.CASCADE)
@@ -97,6 +99,29 @@ class Repost(models.Model):
 
     class Meta:
         unique_together = ('user', 'post')
+
+
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('follow', 'Follow'),
+        ('like', 'Like'),
+        ('retweet', 'Retweet'),
+        ('mention', 'Mention'),
+        ('direct_message', 'Direct Message'),
+        ('reply', 'Reply'),
+        ('custom', 'Custom Event'),
+    ]
+
+    sender = models.ForeignKey(User, related_name='sent_notifications', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='received_notifications', on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    content = models.TextField(blank=True, null=True)  # 関連するコンテンツの情報
+    is_read = models.BooleanField(default=False)  # 通知の状態
+    created_at = models.DateTimeField(auto_now_add=True)  # 通知の作成日時
+
+    def __str__(self):
+        return f'{self.sender} {self.get_notification_type_display()} {self.receiver}'
 
 
 #ブログアプリ

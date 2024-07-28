@@ -2,8 +2,6 @@ from rest_framework import serializers
 from .models import *
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from allauth.account.adapter import get_adapter
-import uuid
-import re
 
 #
 
@@ -87,6 +85,19 @@ class UserSerializer(serializers.ModelSerializer):
     def get_repost(self, obj):
         repost_idx = list(Repost.objects.filter(user=obj).values_list('post', flat=True))
         return repost_idx
+    
+
+class NotificationSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    receiver = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'sender', 'receiver', 'notification_type', 'content', 'is_read', 'created_at']
+        read_only_fields = ['sender', 'receiver', 'created_at']
+
+
+
     
 class MessageUserListSerializer(serializers.ModelSerializer):
     user_from = UserSerializer()

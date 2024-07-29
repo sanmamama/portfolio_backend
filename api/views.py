@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer,ReplySerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -22,6 +22,14 @@ from django.db.models import Q
 
 
 #イカ、ポスッター
+
+class ReplyViewSet(viewsets.ModelViewSet):
+    queryset = Reply.objects.all().order_by('-created_at')
+    serializer_class = ReplySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('-created_at')
@@ -358,7 +366,6 @@ class PostViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.owner != request.user:
@@ -377,93 +384,79 @@ class PostViewSet(viewsets.ModelViewSet):
             timeline_reposts = [repost.post for repost in reposts]
             for repost in reposts:
                 repost.post.repost = repost  # リポスト情報をポストに追加
-                #repostの方ソート用に
                 repost.post.sort = repost.created_at
 
-            #postの方ソート用に
+            # postの方ソート用に
             for post in posts:
                 post.sort = post.created_at
             
             timeline = timeline_posts + timeline_reposts
             timeline = sorted(timeline, key=lambda x: x.sort, reverse=True)
 
-            #ソート用に使ったものを消します
+            # ソート用に使ったものを消します
             for post in timeline:
                 if hasattr(post, 'sort'):
                     delattr(post, 'sort')
 
-
-            paginator = PageNumberPagination()
-            #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
+            paginator = self.pagination_class()
             result_page = paginator.paginate_queryset(timeline, request)
             
-            #print(f"ユーザープロフィール{len(result_page)}")
-            #view_count
             if result_page is not None:
-                # ページネーションされた結果のポストのview_countをインクリメント
                 Post.objects.filter(pk__in=[post.id for post in result_page]).update(view_count=F('view_count') + 1)
-
-            serializer = PostSerializer(result_page, many=True, context={'request': request})
-            return paginator.get_paginated_response(serializer.data)
+                serializer = self.get_serializer(result_page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+            
+            serializer = self.get_serializer(timeline, many=True)
+            return Response(serializer.data)
+        
         return Response({"detail": "ユーザーが見つかりませんでした。"}, status=status.HTTP_404_NOT_FOUND)
 
     def get_queryset(self):
-        # DELETEメソッドの際
-        if self.request.method == "DELETE":
-            return Post.objects.all()
+        return Post.objects.all()
+    
+    def filter_timeline(self, request):
+        mention_ids = list(Mention.objects.filter(user_to_id=request.user.id).values_list('post_id', flat=True))
+        following_ids = list(Follow.objects.filter(follower_id=request.user.id).values_list('following_id', flat=True))
+        posts = Post.objects.filter(Q(owner_id=request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=mention_ids))
+        reposts = Repost.objects.filter(Q(user_id=request.user.id) | Q(user_id__in=following_ids)).select_related('post')
         
-        # 検索機能
-        query = self.request.query_params.get('q', None)
-        if query:
-            queryset = Post.objects.filter(Q(content__icontains=query)|Q(owner__username__icontains=query)|Q(owner__uid__icontains=query)).order_by('-created_at')
-            return queryset
-        
-        # デフォルト　通常の投稿＋リツイート投稿
-        reply_ids = list(Reply.objects.filter(reply_to_id = self.request.user.id).values_list('post_id',flat=True))
-        following_ids = list(Follow.objects.filter(follower_id=self.request.user.id).values_list('following_id',flat=True))
-        posts = Post.objects.filter( Q(owner_id=self.request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=reply_ids))
-        reposts = Repost.objects.filter(Q(user_id=self.request.user.id) | Q(user_id__in=following_ids)).select_related('post')
-
         timeline_posts = list(posts)
         timeline_reposts = [repost.post for repost in reposts]
         for repost in reposts:
             repost.post.repost = repost
-            #repostの方ソート用に
             repost.post.sort = repost.created_at
 
-        #postの方ソート用に
         for post in posts:
             post.sort = post.created_at
         
         timeline = timeline_posts + timeline_reposts
         timeline = sorted(timeline, key=lambda x: x.sort, reverse=True)
-
-        #ソート用に使ったものを消します
+        
         for post in timeline:
             if hasattr(post, 'sort'):
                 delattr(post, 'sort')
+        
+        return timeline
 
-        queryset = timeline
-        return queryset
-    
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        query = request.query_params.get('q', None)
+        if query:
+            queryset = Post.objects.filter(Q(content__icontains=query) | Q(owner__username__icontains=query) | Q(owner__uid__icontains=query)).order_by('-created_at')
+        else:
+            queryset = self.filter_timeline(request)
+
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(queryset, request)
-        #print(f"デフォルト{len(page)}")
         if page is not None:
-            # ページネーションされた結果のポストのview_countをインクリメント
             Post.objects.filter(pk__in=[post.id for post in page]).update(view_count=F('view_count') + 1)
             serializer = self.get_serializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
-
+        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
-
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-    
 
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

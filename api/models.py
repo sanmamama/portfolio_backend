@@ -8,10 +8,10 @@ import uuid
 
 
 
-class Reply(models.Model):
+class Mention(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
-    replier = models.ForeignKey('User', related_name='replies', on_delete=models.CASCADE)
-    reply_to = models.ForeignKey('User', related_name='replied_to', on_delete=models.CASCADE)
+    user_from = models.ForeignKey('User', related_name='mention_user_from', on_delete=models.CASCADE)
+    user_to = models.ForeignKey('User', related_name='mention_user_to', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Follow(models.Model):
@@ -101,12 +101,22 @@ class Repost(models.Model):
         unique_together = ('user', 'post')
 
 
+class Reply(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='replies')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Reply by {self.user.username} to {self.post.id}'
+
+
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
         ('follow', 'Follow'),
         ('like', 'Like'),
-        ('retweet', 'Retweet'),
+        ('repost', 'Repost'),
         ('mention', 'Mention'),
         ('direct_message', 'Direct Message'),
         ('reply', 'Reply'),

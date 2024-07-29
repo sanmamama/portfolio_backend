@@ -3,8 +3,6 @@ from .models import *
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from allauth.account.adapter import get_adapter
 import re
-#
-
 from rest_framework import serializers
 from django.conf import settings
 
@@ -21,6 +19,11 @@ class AbsoluteURLField(serializers.Field):
         return url
 
 #イカ、ポスッター
+
+class ReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reply
+        fields = '__all__'
 
 class AddMemberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -171,22 +174,25 @@ class PostSerializer(serializers.ModelSerializer):
         content = validated_data.get('content', '')
         post = Post.objects.create(**validated_data)
   
-        # リプライ対象のユーザー名を検出
-        reply_usernames = re.findall(r'@(\w+)', content)
+        # メンション先のユーザー名を検出
+        mention_to_usernames = re.findall(r'@(\w+)', content)
 
-        for username in reply_usernames:
+        for username in mention_to_usernames:
             try:
-                reply_user = User.objects.get(uid=username)
+                mention_user_to = User.objects.get(uid=username)
                 content = re.sub(f'@{username}', f'<uid>{username}</uid>', content)
                 post.content = content
-                Reply.objects.create(
+                mention = Mention.objects.create(
                     post=post,
-                    replier=validated_data['owner'],
-                    reply_to=reply_user
+                    user_from=validated_data['owner'],
+                    user_to=mention_user_to
                 )
+                #通知
+                notification, created = Notification.objects.get_or_create(sender=mention.user_from,receiver=mention.user_to,notification_type="mention",content=post.content)
             except User.DoesNotExist:
                 # ユーザーが存在しない場合の処理
                 pass
+        
         
         post.content = content
         post.save()

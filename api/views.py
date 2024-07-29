@@ -38,6 +38,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
         ids = request.data.get('ids', [])
         Notification.objects.filter(id__in=ids, receiver=request.user).update(is_read=True)
         return Response({"status": "notifications marked as read"})
+    
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        unread_count = Notification.objects.filter(receiver=request.user, is_read=False).count()
+        return Response(unread_count)
 
     def perform_create(self, serializer):
         # 通知を作成するとき、送信者と受信者を設定する
@@ -47,14 +52,23 @@ class NotificationViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(queryset, request)
+        
+        # 未読通知の数をカウント
+        unread_count = Notification.objects.filter(receiver=request.user, is_read=False).count()
+        
         if page is not None:
-            # ページネーションされた結果のポストのview_countをインクリメント
             Notification.objects.filter(pk__in=[notification.id for notification in page]).update(is_read=True)
             serializer = self.get_serializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
+            paginated_response = paginator.get_paginated_response(serializer.data)
+            paginated_response.data['unread_count'] = unread_count  # 未読通知の数をレスポンスに追加
+            return paginated_response
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        response_data = {
+            'results': serializer.data,
+            'unread_count': unread_count  # 未読通知の数をレスポンスに追加
+        }
+        return Response(response_data)
 
 class AddMemberViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -167,6 +181,14 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        receiver_user = serializer.validated_data.get('user_to')
+        message = serializer.validated_data.get('content')
+
+        #通知
+        if self.request.user != receiver_user:
+            notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=receiver_user,notification_type="message",content=message)
+
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

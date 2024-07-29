@@ -43,6 +43,19 @@ class NotificationViewSet(viewsets.ModelViewSet):
         # 通知を作成するとき、送信者と受信者を設定する
         serializer.save(sender=self.request.user)
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            # ページネーションされた結果のポストのview_countをインクリメント
+            Notification.objects.filter(pk__in=[notification.id for notification in page]).update(is_read=True)
+            serializer = self.get_serializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 class AddMemberViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = AddMemberSerializer
@@ -84,13 +97,23 @@ class RepostViewSet(viewsets.ModelViewSet):
             post = Post.objects.get(id=post_id)
         except Post.DoesNotExist:
             return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        #通知
+        if self.request.user != post.owner:
+            notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="repost",content=post.content)
 
         if Repost.objects.filter(user=user, post=post).exists():
             Repost.objects.filter(user=user, post=post).delete()
+            if self.request.user != post.owner:
+                notification.delete()
             return Response({"detail": "this post deleted."}, status=status.HTTP_400_BAD_REQUEST)
 
         repost = Repost(user=user, post=post)
         repost.save()
+        
+        
+        
+
         return Response({"detail": "Reposted successfully."}, status=status.HTTP_201_CREATED)
     
 
@@ -278,9 +301,12 @@ class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.
 
         if following_id == follower_id:
             raise ValidationError("自分自身をフォローすることはできません。")
+        
+        notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=serializer.validated_data.get('following'),notification_type="follow",)
 
         existing_follow = Follow.objects.filter(follower_id=follower_id, following_id=following_id).first()
         if existing_follow:
+            notification.delete()
             existing_follow.delete()
             return Response({"message": "フォローを解除しました。"}, status=status.HTTP_200_OK)
 

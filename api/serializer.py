@@ -24,6 +24,7 @@ class ReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
         fields = '__all__'
+        read_only_fields = ['owner', 'created_at']
 
 class AddMemberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -148,10 +149,11 @@ class PostSerializer(serializers.ModelSerializer):
     repost_count = serializers.SerializerMethodField()
     repost_user = serializers.SerializerMethodField()
     repost_created_at = serializers.SerializerMethodField()
+    reply_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'owner', 'content', 'created_at','view_count', 'like_count','repost_count', 'repost_user', 'repost_created_at']
+        fields = ['id', 'owner', 'content', 'created_at','view_count', 'like_count','repost_count', 'repost_user', 'repost_created_at','reply_count']
         read_only_fields = ['created_at','owner', 'like_count','repost_count']
 
     def get_like_count(self, obj):
@@ -169,6 +171,9 @@ class PostSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'repost'):
             return obj.repost.created_at
         return None
+    
+    def get_reply_count(self, obj):
+        return Reply.objects.filter(post=obj).count()
     
     def create(self, validated_data):
         content = validated_data.get('content', '')

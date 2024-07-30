@@ -29,7 +29,7 @@ class ReplyViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(owner=self.request.user)
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('-created_at')
@@ -453,6 +453,12 @@ class PostViewSet(viewsets.ModelViewSet):
             return paginator.get_paginated_response(serializer.data)
         
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        Post.objects.filter(pk=instance.pk).update(view_count=F('view_count') + 1)
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
     def perform_create(self, serializer):

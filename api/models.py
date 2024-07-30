@@ -103,7 +103,7 @@ class Repost(models.Model):
 
 class Reply(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='replies')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

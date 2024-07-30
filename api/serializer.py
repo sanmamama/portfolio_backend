@@ -20,11 +20,7 @@ class AbsoluteURLField(serializers.Field):
 
 #イカ、ポスッター
 
-class ReplySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reply
-        fields = '__all__'
-        read_only_fields = ['owner', 'created_at']
+
 
 class AddMemberSerializer(serializers.ModelSerializer):
     class Meta:
@@ -153,7 +149,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'owner', 'content', 'created_at','view_count', 'like_count','repost_count', 'repost_user', 'repost_created_at','reply_count']
+        fields = ['id', 'owner', 'content', 'created_at','view_count', 'like_count','repost_count', 'repost_user', 'repost_created_at','reply_count','parent']
         read_only_fields = ['created_at','owner', 'like_count','repost_count']
 
     def get_like_count(self, obj):
@@ -173,11 +169,17 @@ class PostSerializer(serializers.ModelSerializer):
         return None
     
     def get_reply_count(self, obj):
-        return Reply.objects.filter(post=obj).count()
+        return Post.objects.filter(parent=obj).count()
     
     def create(self, validated_data):
         content = validated_data.get('content', '')
+        parent = validated_data.get('parent', '')
         post = Post.objects.create(**validated_data)
+
+        print(parent)
+        #リプライの場合は親postId入れる。リプライではないときはnull
+        if parent:
+            post.parent_id = parent
   
         # メンション先のユーザー名を検出
         mention_to_usernames = re.findall(r'@(\w+)', content)
@@ -260,7 +262,6 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.save()
         adapter.save_user(request, user, self)
         return user
-
 
 
 #イカ、ブログ

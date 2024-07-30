@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer,ReplySerializer
+from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -22,14 +22,6 @@ from django.db.models import Q
 
 
 #イカ、ポスッター
-
-class ReplyViewSet(viewsets.ModelViewSet):
-    queryset = Reply.objects.all().order_by('-created_at')
-    serializer_class = ReplySerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('-created_at')
@@ -373,12 +365,29 @@ class PostViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=False, methods=['get'], url_path=r'reply/(?P<id>\d+)')
+    def posts_by_reply(self, request, id=None):
+        post = Post.objects.filter(parent=id)
+        if post:
+            paginator = self.pagination_class()
+            result_page = paginator.paginate_queryset(post, request)
+            
+            if result_page is not None:
+                Post.objects.filter(pk__in=[post.id for post in result_page]).update(view_count=F('view_count') + 1)
+                serializer = self.get_serializer(result_page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(post, many=True)
+            return Response(serializer.data)
+
+        return Response({"detail": "リプライが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+
     @action(detail=False, methods=['get'], url_path='user/(?P<uid>[^/.]+)')
     def posts_by_user(self, request, uid=None):
         user = User.objects.filter(uid=uid).first()
         if user:
             posts = Post.objects.filter(owner=user)
             reposts = Repost.objects.filter(user_id=user).select_related('post')
+
             # 投稿とリツイートを統合
             timeline_posts = list(posts)
             timeline_reposts = [repost.post for repost in reposts]

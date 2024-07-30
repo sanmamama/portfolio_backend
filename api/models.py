@@ -25,6 +25,7 @@ class Post(models.Model):
     content = models.TextField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     view_count = models.PositiveIntegerField(default=0)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='reply', on_delete=models.CASCADE)
 
 
 class Like(models.Model):
@@ -100,15 +101,6 @@ class Repost(models.Model):
     class Meta:
         unique_together = ('user', 'post')
 
-
-class Reply(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='replies')
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'Reply by {self.user.username} to {self.post.id}'
 
 
 

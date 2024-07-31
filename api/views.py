@@ -114,7 +114,7 @@ class RepostViewSet(viewsets.ModelViewSet):
         
         #通知
         if self.request.user != post.owner:
-            notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="repost",content=post.content)
+            notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="repost",content=post.content,parent=post_id)
 
         if Repost.objects.filter(user=user, post=post).exists():
             Repost.objects.filter(user=user, post=post).delete()
@@ -367,7 +367,8 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path=r'reply/(?P<id>\d+)')
     def posts_by_reply(self, request, id=None):
-        post = Post.objects.filter(parent=id)
+        post = Post.objects.filter(parent=id).order_by('created_at').reverse()
+        #print(post)
         if post:
             paginator = self.pagination_class()
             result_page = paginator.paginate_queryset(post, request)
@@ -472,6 +473,23 @@ class PostViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        parent = serializer.validated_data.get('parent')
+        message = serializer.validated_data.get('content')
+
+        if parent:
+            post = Post.objects.filter(id=parent.id).first()
+            #通知
+            if self.request.user != post.owner:
+                notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="reply",content=message,post_id=serializer.data['id'],parent=parent)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

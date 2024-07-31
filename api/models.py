@@ -121,6 +121,8 @@ class Notification(models.Model):
     content = models.TextField(blank=True, null=True)  # 関連するコンテンツの情報
     is_read = models.BooleanField(default=False)  # 通知の状態
     created_at = models.DateTimeField(auto_now_add=True)  # 通知の作成日時
+    post = models.ForeignKey('Post',related_name='post', null=True, blank=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey('Post',related_name='related_post', null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.sender} {self.get_notification_type_display()} {self.receiver}'

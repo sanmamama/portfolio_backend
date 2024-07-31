@@ -93,7 +93,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Notification
-        fields = ['id', 'sender', 'receiver', 'notification_type', 'content', 'is_read', 'created_at']
+        fields = ['id', 'sender', 'receiver', 'notification_type', 'content', 'is_read', 'created_at', 'post', 'parent']
         read_only_fields = ['sender', 'receiver', 'created_at']
 
 
@@ -195,7 +195,7 @@ class PostSerializer(serializers.ModelSerializer):
                     user_to=mention_user_to
                 )
                 #通知
-                notification, created = Notification.objects.get_or_create(sender=mention.user_from,receiver=mention.user_to,notification_type="mention",content=post.content)
+                notification, created = Notification.objects.get_or_create(sender=mention.user_from,receiver=mention.user_to,notification_type="mention",content=post.content,post_id=post.id)
             except User.DoesNotExist:
                 # ユーザーが存在しない場合の処理
                 pass

@@ -110,7 +110,7 @@ class Notification(models.Model):
         ('like', 'Like'),
         ('repost', 'Repost'),
         ('mention', 'Mention'),
-        ('direct_message', 'Direct Message'),
+        ('message', 'Message'),
         ('reply', 'Reply'),
         ('custom', 'Custom Event'),
     ]

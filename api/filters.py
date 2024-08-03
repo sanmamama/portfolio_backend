@@ -1,12 +1,12 @@
 import django_filters
-from .models import Blog,User
+from .models import Blog
 
 
 #イカ、ブログ
 
 class BlogFilter(django_filters.FilterSet):
-    category = django_filters.CharFilter(field_name='category__name', lookup_expr='icontains')
-    tag = django_filters.CharFilter(field_name='tag__name', lookup_expr='icontains')
+    category = django_filters.CharFilter(field_name='category__id', lookup_expr='icontains')
+    tag = django_filters.CharFilter(field_name='tag__id', lookup_expr='icontains')
     date = django_filters.CharFilter(method='filter_by_date')
 
     class Meta:

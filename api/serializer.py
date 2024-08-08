@@ -5,6 +5,7 @@ from allauth.account.adapter import get_adapter
 import re
 from rest_framework import serializers
 from django.conf import settings
+from markdownx.utils import markdownify
 
 class AbsoluteURLField(serializers.Field):
     def to_representation(self, value):
@@ -279,11 +280,15 @@ class TagSerializer(serializers.ModelSerializer):
 class BlogSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     tag = TagSerializer(many=True)
+    content_html = serializers.SerializerMethodField()
 
     class Meta:
         model = Blog
-        fields = '__all__'
-        #fields = ('id', 'title', 'content', 'category', 'tag', 'created_at')
+        #fields = '__all__'
+        fields = ('id', 'title', 'img', 'content_html', 'category', 'tag', 'created_at', 'updated_at', 'likes')
+    
+    def get_content_html(self, obj):
+        return markdownify(obj.content)
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:

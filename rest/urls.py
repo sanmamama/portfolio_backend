@@ -31,8 +31,8 @@ postterRouter.register(r'notification', views.NotificationViewSet,basename='noti
 
 
 
-urlpatterns = [
-	path('ckeditor/', include('ckeditor_uploader.urls')),   
+urlpatterns = [ 
+	path('markdownx/', include('markdownx.urls')),
 	path('admin/', admin.site.urls),
 
 	path('api/', include(router.urls)),

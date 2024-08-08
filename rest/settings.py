@@ -44,8 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 	'corsheaders',
-	'ckeditor',
-    'ckeditor_uploader',
+	'markdownx',
 	'django_filters',
 	
     'allauth',

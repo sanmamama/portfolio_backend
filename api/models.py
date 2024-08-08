@@ -1,7 +1,7 @@
 from django.db import models
-from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser,  PermissionsMixin
+from markdownx.models import MarkdownxField
 import uuid
 
 #postter
@@ -138,7 +138,7 @@ class Tag(models.Model):
 	
 class Blog(models.Model):
 	title = models.CharField(max_length=100)
-	content = RichTextUploadingField()
+	content = MarkdownxField()
 	img = models.ImageField(upload_to='media/')
 	created_at = models.DateTimeField()
 	updated_at = models.DateTimeField()
@@ -147,6 +147,8 @@ class Blog(models.Model):
 	likes = models.PositiveIntegerField(default=0)
 	def __str__(self):
 		return self.title
+     
+
 
 class Comment(models.Model):
 	post_id = models.ForeignKey('Blog', on_delete=models.CASCADE ,related_name='comments')

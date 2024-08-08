@@ -1,8 +1,10 @@
 from django.contrib import admin
 from .models import *
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
-from django import forms
+from markdownx.admin import MarkdownxModelAdmin
+#from ckeditor_uploader.widgets import CKEditorUploadingWidget
+#from django import forms
 
+"""
 class PostAdminForm(forms.ModelForm):
     content = forms.CharField(widget=CKEditorUploadingWidget())
 
@@ -12,8 +14,10 @@ class PostAdminForm(forms.ModelForm):
 
 class PostAdmin(admin.ModelAdmin):
     form = PostAdminForm
+"""
 
-admin.site.register(Blog)
+
+admin.site.register(Blog, MarkdownxModelAdmin)
 admin.site.register(Tag)
 admin.site.register(Comment)
 admin.site.register(Category)

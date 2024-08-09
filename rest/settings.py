@@ -25,8 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+#DEBUG = False
 
 ALLOWED_HOSTS = ['192.168.3.21', 'localhost', '127.0.0.1']
+#ALLOWED_HOSTS = ['sanmamama.com', 'www.sanmamama.com', '127.0.0.1','localhost']
 
 
 #ckeditor
@@ -185,7 +187,10 @@ REST_AUTH = {
 	'REGISTER_SERIALIZER': 'api.serializer.CustomRegisterSerializer',
 }
 
-
-
+MARKDOWNX_MARKDOWN_EXTENSIONS = [
+    'markdown.extensions.extra',    # テーブル、コードブロック等
+    'markdown.extensions.toc',       # 目次
+    'markdown.extensions.nl2br',    # 改行
+]
 
 

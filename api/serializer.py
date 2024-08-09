@@ -6,6 +6,7 @@ import re
 from rest_framework import serializers
 from django.conf import settings
 from markdownx.utils import markdownify
+import markdown
 
 class AbsoluteURLField(serializers.Field):
     def to_representation(self, value):
@@ -281,14 +282,44 @@ class BlogSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     tag = TagSerializer(many=True)
     content_html = serializers.SerializerMethodField()
+    toc_html = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Blog
         #fields = '__all__'
-        fields = ('id', 'title', 'img', 'content_html', 'category', 'tag', 'created_at', 'updated_at', 'likes')
+        fields = ('id', 'title', 'img', 'content_html', 'category', 'tag', 'created_at', 'updated_at', 'likes','toc_html')
     
     def get_content_html(self, obj):
-        return markdownify(obj.content)
+        # MarkdownをHTMLに変換
+        
+        md = markdown.Markdown(extensions=['toc'])
+        html = md.convert(markdownify(obj.content))
+
+        # 1回目のヒットをスキップし、2回目以降にクラスを追加するためのカウンター
+        counter = {'h_tag': 0}
+
+        def replace_h_tag(match):
+            counter['h_tag'] += 1
+            if counter['h_tag'] == 1:
+                # 1回目のヒットはmt-5いれない
+                return f'{match.group(1)} class="anchor mt-1 mb-1 pt-0 pb-0" {match.group(2)}'
+            else:
+                # 2回目以降はクラスを追加
+                return f'{match.group(1)} class="anchor mt-5 mb-0 pt-0 pb-0" {match.group(2)}'
+
+        # <h[1-7] に対する置換処理
+        html = re.sub(r'(<h[1-7])(.*?>)', replace_h_tag, html)
+
+        # </h[1-7]> の後に <hr> を挿入
+        html = re.sub(r'(</h[1-7]>)', r'\1<hr class="mt-0 mb-0"/>', html)
+        
+        return html
+    
+    def get_toc_html(self, obj):
+        md = markdown.Markdown(extensions=['toc'])
+        html = md.convert(obj.content)
+        return md.toc
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:

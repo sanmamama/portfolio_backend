@@ -30,17 +30,18 @@ postterRouter.register(r'notification', views.NotificationViewSet,basename='noti
 
 
 
-
 urlpatterns = [ 
 	path('markdownx/', include('markdownx.urls')),
 	path('admin/', admin.site.urls),
 
 	path('api/', include(router.urls)),
+
 	path('api/blog/<int:pk>/like/', LikeBlogView.as_view(), name='like'),
 
 	path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
 
 	path('api/postter/', include(postterRouter.urls)),
+	path('api/postter/translate/', views.TranslateView.as_view(), name='translate'),
 	
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

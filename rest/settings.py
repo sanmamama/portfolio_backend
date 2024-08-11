@@ -71,7 +71,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'corsheaders.middleware.CorsMiddleware',
-	'allauth.account.middleware.AccountMiddleware',  # 追加
+	'allauth.account.middleware.AccountMiddleware',
 ]
 
 #許可するオリジンを指定

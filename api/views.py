@@ -20,9 +20,27 @@ from django.db.models import F
 from django.db.models import Q
 from .secrets import DEEPL_API_KEY
 import requests
+from rest_framework.authtoken.models import Token
 
 
 #イカ、ポスッター
+
+class GuestLoginView(APIView):
+    def post(self, request):
+        # 一意なゲストユーザー名を生成
+        guest_username = f"guest_{uuid.uuid4().hex[:10]}"
+        # パスワードなしでユーザーを作成
+        guest_user = User.objects.create_user(username=guest_username,email=guest_username, password=None ,uid=guest_username ,avatar_imgurl="guest.png")
+        # 必要ならば、その他のユーザー情報も設定
+        guest_user.save()
+
+        # ログイン用のトークンを生成（JWTやDRFトークンを使用している場合）
+        # トークン生成処理を書く
+        token, created = Token.objects.get_or_create(user=guest_user)
+
+        return Response({
+            'key': token.key,
+        }, status=status.HTTP_201_CREATED)
 
 class TranslateView(APIView):
     permission_classes = [permissions.IsAuthenticated]

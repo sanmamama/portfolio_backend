@@ -40,8 +40,11 @@ urlpatterns = [
 
 	path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+	path('api/auth/guest-login/', views.GuestLoginView.as_view(), name='guest-login'),
 
 	path('api/postter/', include(postterRouter.urls)),
 	path('api/postter/translate/', views.TranslateView.as_view(), name='translate'),
+	
+
 	
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

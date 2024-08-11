@@ -43,7 +43,6 @@ urlpatterns = [
 	path('api/auth/guest-login/', views.GuestLoginView.as_view(), name='guest-login'),
 
 	path('api/postter/', include(postterRouter.urls)),
-	path('api/postter/translate/', views.TranslateView.as_view(), name='translate'),
 	
 
 	

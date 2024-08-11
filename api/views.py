@@ -42,37 +42,6 @@ class GuestLoginView(APIView):
             'key': token.key,
         }, status=status.HTTP_201_CREATED)
 
-class TranslateView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        def translate_text(text, target_lang):
-            url = "https://api-free.deepl.com/v2/translate"
-            data = {
-                'auth_key': DEEPL_API_KEY,
-                'text': text,
-                'target_lang': target_lang,
-            }
-            response = requests.post(url, data=data)
-            print(response)
-            if response.status_code == 200:
-                result = response.json()
-                return result['translations'][0]['text']
-            else:
-                return None
-        
-        text = request.data.get('text')
-        target_lang = request.data.get('target_lang')
-
-        if not text or not target_lang:
-            return Response({"error": "Both 'text' and 'target_lang' are required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        translated_text = translate_text(text, target_lang)
-
-        if translated_text:
-            return Response({"translated_text": translated_text}, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "Translation failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('-created_at')
@@ -532,6 +501,27 @@ class PostViewSet(viewsets.ModelViewSet):
 
         parent = serializer.validated_data.get('parent')
         message = serializer.validated_data.get('content')
+
+        #翻訳
+        def translate_text(text, target_lang):
+            url = "https://api-free.deepl.com/v2/translate"
+            data = {
+                'auth_key': DEEPL_API_KEY,
+                'text': text,
+                'target_lang': target_lang,
+            }
+            response = requests.post(url, data=data)
+            print(response)
+            if response.status_code == 200:
+                result = response.json()
+                return result['translations'][0]['text']
+            else:
+                return None
+            
+        target_lang = "EN"
+        translated_text = translate_text(message, target_lang)
+        serializer.save(content_EN=translated_text)
+
 
         if parent:
             post = Post.objects.filter(id=parent.id).first()

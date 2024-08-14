@@ -177,8 +177,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 6,
 	'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.TokenAuthentication',),
-	#'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',),
-	#'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.SessionAuthentication',),
 	'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
 }
 
@@ -188,9 +186,9 @@ REST_AUTH = {
 }
 
 MARKDOWNX_MARKDOWN_EXTENSIONS = [
-    'markdown.extensions.extra',    # テーブル、コードブロック等
-    'markdown.extensions.toc',       # 目次
-    'markdown.extensions.nl2br',    # 改行
+    'markdown.extensions.extra',
+    'markdown.extensions.toc',
+    'markdown.extensions.nl2br',
 ]
 
 

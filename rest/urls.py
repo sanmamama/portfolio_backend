@@ -27,9 +27,6 @@ postterRouter.register(r'addmember', views.AddMemberViewSet, basename='addmember
 postterRouter.register(r'repost', views.RepostViewSet, basename='repost')
 postterRouter.register(r'notification', views.NotificationViewSet,basename='notification')
 
-
-
-
 urlpatterns = [ 
 	path('markdownx/', include('markdownx.urls')),
 	path('admin/', admin.site.urls),

@@ -13,24 +13,20 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v2
 
-    #- name: Set up Python
-    #  uses: actions/setup-python@v2
-    #  with:
-    #    python-version: '3.12.4'
-
-    #- name: Install Python dependencies
-    #  run: |
-    #    pip install -r requirements.txt
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > root/.ssh/id_rsa
+        chmod 600 root/.ssh/id_rsa
+        ssh-keyscan -H 118.27.2.129 >> root/.ssh/known_hosts
 
     - name: Upload Django files to server
       run: |
         scp -r ./* root@118.27.2.129:/root/rest
 
     - name: SSH and restart Gunicorn
-      env:
-        DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
       run: |
-        ssh user@your-vps-ip << 'EOF'
+        ssh root@118.27.2.129 << 'EOF'
           source /root/rest/activate
           python manage.py migrate
           python manage.py collectstatic --noinput

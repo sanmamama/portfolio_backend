@@ -15,9 +15,10 @@ jobs:
 
     - name: Set up SSH agent and add key
       run: |
-        eval "$(ssh-agent -s)"
+        mkdir -p ~/.ssh  # .sshディレクトリを作成
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+        eval "$(ssh-agent -s)"
         ssh-add ~/.ssh/id_rsa <<< "${{ secrets.SSH_PASSPHRASE }}"
         ssh-keyscan -H 118.27.2.129 >> ~/.ssh/known_hosts
 

@@ -16,7 +16,9 @@ jobs:
     - name: Set up SSH agent and add key
       run: |
         eval "$(ssh-agent -s)"
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add - <<< "${{ secrets.SSH_PASSPHRASE }}"
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-add ~/.ssh/id_rsa <<< "${{ secrets.SSH_PASSPHRASE }}"
         ssh-keyscan -H 118.27.2.129 >> ~/.ssh/known_hosts
 
     - name: Upload Django files to server

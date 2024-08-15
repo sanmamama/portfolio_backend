@@ -33,7 +33,7 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         port: 22
         script: |
-          source /root/rest/activate
+          source /root/rest/venv/bin/activate
           python manage.py migrate
           python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn

@@ -3,34 +3,37 @@ name: Deploy Django to VPS
 on:
   push:
     branches:
-      - main
+      - main  # mainブランチにプッシュされたときにトリガー
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out the repository
+    - name: チェックアウト
       uses: actions/checkout@v2
 
-    - name: Set up SSH agent and add key
-      run: |
-        mkdir -p ~/.ssh  # .sshディレクトリを作成
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 700 ~/.ssh
-        chmod 600 ~/.ssh/id_rsa
-        eval "$(ssh-agent -s)"
-        ssh-add ~/.ssh/id_rsa <<< "${{ secrets.SSH_PASSPHRASE }}"
-        ssh-keyscan -H 118.27.2.129 >> ~/.ssh/known_hosts
+    - name: サーバーにファイルをアップロード
+      uses: appleboy/scp-action@v0.1.3
+      with:
+        host: 118.27.2.129
+        username: root
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        port: 22
+        source: "./*"
+        target: "/root/rest"
 
-    - name: Upload Django files to server
-      run: |
-        scp -v -r ./* root@118.27.2.129:/root/rest
-
-    - name: SSH and restart Gunicorn
-      run: |
-        ssh root@118.27.2.129 << 'EOF'
+    - name: サーバーでコマンドを実行
+      uses: appleboy/ssh-action@v0.1.2
+      with:
+        host: 118.27.2.129
+        username: root
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        port: 22
+        script: |
           source /root/rest/activate
           python manage.py migrate
+          python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn
-        EOF

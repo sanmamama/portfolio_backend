@@ -19,7 +19,7 @@ jobs:
         host: 118.27.2.129
         username: root
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        key_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
         port: 22
         source: "./*"
         target: "/root/rest"
@@ -30,7 +30,7 @@ jobs:
         host: 118.27.2.129
         username: root
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        key_passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
         port: 22
         script: |
           source /root/rest/activate

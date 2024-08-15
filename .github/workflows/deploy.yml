@@ -3,7 +3,7 @@ name: Deploy Django to VPS
 on:
   push:
     branches:
-      - main  # mainブランチにプッシュされたときにトリガー
+      - main
 
 jobs:
   deploy:
@@ -13,11 +13,10 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v2
 
-    - name: Set up SSH
+    - name: Set up SSH agent and add key
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
+        eval "$(ssh-agent -s)"
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add - <<< "${{ secrets.SSH_PASSPHRASE }}"
         ssh-keyscan -H 118.27.2.129 >> ~/.ssh/known_hosts
 
     - name: Upload Django files to server

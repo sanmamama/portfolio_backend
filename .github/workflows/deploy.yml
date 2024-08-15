@@ -16,9 +16,9 @@ jobs:
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > root/.ssh/id_rsa
-        chmod 600 root/.ssh/id_rsa
-        ssh-keyscan -H 118.27.2.129 >> root/.ssh/known_hosts
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > /root/.ssh/id_rsa
+        chmod 600 /root/.ssh/id_rsa
+        ssh-keyscan -H 118.27.2.129 >> /root/.ssh/known_hosts
 
     - name: Upload Django files to server
       run: |
@@ -28,7 +28,7 @@ jobs:
       run: |
         ssh root@118.27.2.129 << 'EOF'
           source /root/rest/activate
+          python manage.py makemigrations
           python manage.py migrate
-          python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn
         EOF

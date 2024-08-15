@@ -24,11 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-#DEBUG = False
+#DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['192.168.3.21', 'localhost', '127.0.0.1']
-#ALLOWED_HOSTS = ['sanmamama.com', 'www.sanmamama.com', '127.0.0.1','localhost']
+#ALLOWED_HOSTS = ['192.168.3.21', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['sanmamama.com', 'www.sanmamama.com', '127.0.0.1','localhost']
 
 
 #ckeditor

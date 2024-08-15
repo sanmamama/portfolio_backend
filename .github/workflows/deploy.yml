@@ -1,0 +1,38 @@
+name: Deploy Django to VPS
+
+on:
+  push:
+    branches:
+      - main  # mainブランチにプッシュされたときにトリガー
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    #- name: Set up Python
+    #  uses: actions/setup-python@v2
+    #  with:
+    #    python-version: '3.12.4'
+
+    #- name: Install Python dependencies
+    #  run: |
+    #    pip install -r requirements.txt
+
+    - name: Upload Django files to server
+      run: |
+        scp -r ./* root@118.27.2.129:/root/rest
+
+    - name: SSH and restart Gunicorn
+      env:
+        DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+      run: |
+        ssh user@your-vps-ip << 'EOF'
+          source /root/rest/activate
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+          sudo systemctl restart gunicorn
+        EOF

@@ -22,8 +22,8 @@ class Follow(models.Model):
 
 class Post(models.Model):
     owner = models.ForeignKey('User', on_delete=models.CASCADE)
-    content = models.TextField(max_length=255)
-    content_EN = models.TextField(max_length=255,null=True, blank=True)
+    content = models.TextField(max_length=140)
+    content_EN = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     view_count = models.PositiveIntegerField(default=0)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='reply', on_delete=models.CASCADE)

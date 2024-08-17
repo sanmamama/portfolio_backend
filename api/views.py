@@ -350,11 +350,11 @@ class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.
         if existing_follow:
             notification.delete()
             existing_follow.delete()
-            return Response({"message": "フォローを解除しました。"}, status=status.HTTP_200_OK)
+            return Response({"actionType": "unfollow","id": following_id}, status=status.HTTP_200_OK)
 
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response({"message": "フォローしました。"}, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({"actionType": "follow","id": following_id}, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
         serializer.save(follower=self.request.user)

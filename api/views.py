@@ -573,7 +573,7 @@ class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'])
     def all(self, request):
-        posts = Blog.objects.all()
+        posts = Blog.objects.all().order_by('created_at').reverse()
         serializer = BlogSerializer(posts, many=True)
         return Response(serializer.data)
 

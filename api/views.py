@@ -140,15 +140,13 @@ class RepostViewSet(viewsets.ModelViewSet):
             Repost.objects.filter(user=user, post=post).delete()
             if self.request.user != post.owner:
                 notification.delete()
-            return Response({"detail": "this post deleted."}, status=status.HTTP_400_BAD_REQUEST)
+            repost_count = Repost.objects.filter(post=post).count()
+            return Response({"repost_count": repost_count}, status=status.HTTP_200_OK)
 
         repost = Repost(user=user, post=post)
         repost.save()
-        
-        
-        
-
-        return Response({"detail": "Reposted successfully."}, status=status.HTTP_201_CREATED)
+        repost_count = Repost.objects.filter(post=post).count()
+        return Response({"repost_count": repost_count}, status=status.HTTP_201_CREATED)
     
 
 
@@ -293,9 +291,11 @@ class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
             like.delete()  # 既に「いいね」している場合は「いいね」を解除
             if self.request.user != post.owner:
                 notification.delete()
-            return Response({"message": "いいねを取り消しました"}, status=status.HTTP_200_OK)
+            like_count = Like.objects.filter(post=post).count()
+            return Response({"like_count": like_count}, status=status.HTTP_200_OK)
 
-        return Response({"message": "いいねしました"}, status=status.HTTP_200_OK)
+        like_count = Like.objects.filter(post=post).count()
+        return Response({"like_count": like_count}, status=status.HTTP_201_CREATED)
 
 class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.GenericViewSetはlist無効（/へのGETメソッド無効）
     permission_classes = [IsAuthenticated]

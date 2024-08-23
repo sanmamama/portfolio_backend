@@ -389,18 +389,21 @@ class PostViewSet(viewsets.ModelViewSet):
     def posts_by_reply(self, request, id=None):
         post = Post.objects.filter(parent=id).order_by('created_at').reverse()
         #print(post)
-        if post:
-            paginator = self.pagination_class()
-            result_page = paginator.paginate_queryset(post, request)
-            
-            if result_page is not None:
-                Post.objects.filter(pk__in=[post.id for post in result_page]).update(view_count=F('view_count') + 1)
-                serializer = self.get_serializer(result_page, many=True)
-                return paginator.get_paginated_response(serializer.data)
-            serializer = self.get_serializer(post, many=True)
-            return Response(serializer.data)
 
-        return Response({"detail": "リプライが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+        paginator = self.pagination_class()
+        result_page = paginator.paginate_queryset(post, request)
+        
+        if result_page is not None:
+            Post.objects.filter(pk__in=[post.id for post in result_page]).update(view_count=F('view_count') + 1)
+            serializer = self.get_serializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(post, many=True)
+        return Response(serializer.data)
+
+        # paginator = self.pagination_class()
+        # result_page = paginator.paginate_queryset(post, request)
+        # serializer = self.get_serializer(result_page, many=True)
+        # return paginator.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='user/(?P<uid>[^/.]+)')
     def posts_by_user(self, request, uid=None):

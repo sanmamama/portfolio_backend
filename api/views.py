@@ -178,7 +178,7 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path=r'(?P<id>\d+)')
     def message_by_user(self, request, id=None):
-        queryset = Message.objects.filter(Q(user_from_id=id,user_to_id=self.request.user.id)|Q(user_to_id=id,user_from_id=self.request.user.id)).order_by('created_at')
+        queryset = Message.objects.filter(Q(user_from_id=id,user_to_id=self.request.user.id)|Q(user_to_id=id,user_from_id=self.request.user.id)).order_by('created_at').reverse()
         paginator = PageNumberPagination()
         #paginator.page_size = 10  # 1ページあたりのアイテム数を設定    指定するなら
         result_page = paginator.paginate_queryset(queryset, request)

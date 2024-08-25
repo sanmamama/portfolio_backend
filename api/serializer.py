@@ -312,7 +312,7 @@ class BlogSerializer(serializers.ModelSerializer):
         html = re.sub(r'(<h[1-7])(.*?>)', replace_h_tag, html)
 
         # </h[1-7]> の後に <hr> を挿入
-        html = re.sub(r'(</h[1-7]>)', r'\1<hr class="mt-0 mb-0"/>', html)
+        html = re.sub(r'(</h[1-7]>)', r'\1<hr class="mt-1 mb-1"/>', html)
         
         return html
     

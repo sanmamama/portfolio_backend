@@ -514,16 +514,25 @@ class PostViewSet(viewsets.ModelViewSet):
                 'target_lang': target_lang,
             }
             response = requests.post(url, data=data)
-            print(response)
             if response.status_code == 200:
                 result = response.json()
-                return result['translations'][0]['text']
+                # print(result) {'translations': [{'detected_source_language': 'EN', 'text': 'what are you doing now?'}]}
+                return result['translations'][0]['detected_source_language'],result['translations'][0]['text']
             else:
                 return None
             
+        
+            
         target_lang = "EN"
-        translated_text = translate_text(message, target_lang)
+        detected_source_language,translated_text = translate_text(message, target_lang)
         serializer.save(content_EN=translated_text)
+
+        if detected_source_language != "JA":
+            target_lang = "JA"
+            detected_source_language,translated_text = translate_text(message, target_lang)
+            serializer.save(content_JA=translated_text)
+        else:
+            serializer.save(content_JA=message)
 
 
         if parent:

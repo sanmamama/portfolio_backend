@@ -61,7 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id','uid','username','avatar_imgurl', 'profile_statement','post_count','following_count','follower_count','following','follower','like','repost') #,'email'
+        fields = ('id','uid','username','avatar_imgurl', 'profile_statement','locale','post_count','following_count','follower_count','following','follower','like','repost') #,'email'
 
     def get_post_count(self, obj):#selfはシリアライザインスタンス自体を指しますが、objは現在シリアライザにバインドされているオブジェクト、すなわちシリアライザが処理しているモデルインスタンスを指します。
         return Post.objects.filter(owner=obj).count()

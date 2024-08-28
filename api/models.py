@@ -78,7 +78,11 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    #id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
+    LOCALE_CHOICES = [
+        ('en', 'English'),
+        ('ja', 'Japanese'),
+    ]
+
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=255)
     uid = models.CharField(max_length=255,unique=True)
@@ -86,6 +90,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_statement = models.CharField(max_length=255,blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    locale = models.CharField(max_length=5,choices=LOCALE_CHOICES,default='ja',)
 
     objects = UserManager()
 

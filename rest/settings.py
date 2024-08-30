@@ -72,6 +72,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'corsheaders.middleware.CorsMiddleware',
 	'allauth.account.middleware.AccountMiddleware',
+	'django.middleware.locale.LocaleMiddleware',
 ]
 
 #許可するオリジンを指定

@@ -474,7 +474,7 @@ class PostViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         query = request.query_params.get('q', None)
         if query:
-            queryset = Post.objects.filter(Q(content__icontains=query) | Q(owner__username__icontains=query) | Q(owner__uid__icontains=query)).order_by('-created_at')
+            queryset = Post.objects.filter(Q(content_JA__icontains=query) |Q(content_EN__icontains=query) |Q(content__icontains=query) | Q(owner__username__icontains=query) | Q(owner__uid__icontains=query)).order_by('-created_at')
         else:
             queryset = self.filter_timeline(request)
 

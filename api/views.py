@@ -539,7 +539,7 @@ class PostViewSet(viewsets.ModelViewSet):
             post = Post.objects.filter(id=parent.id).first()
             #通知
             if self.request.user != post.owner:
-                notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="reply",content=message,content_JA=content_JA,content_EN=content_EN,post_id=serializer.data['id'],parent=post)
+                notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="reply",content=message,content_JA=post.content_JA,content_EN=post.content_EN,post_id=serializer.data['id'],parent=post)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

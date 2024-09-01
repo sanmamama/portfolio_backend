@@ -125,9 +125,11 @@ class Notification(models.Model):
     sender = models.ForeignKey(User, related_name='sent_notifications', on_delete=models.CASCADE)
     receiver = models.ForeignKey(User, related_name='received_notifications', on_delete=models.CASCADE)
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
-    content = models.TextField(blank=True, null=True)  # 関連するコンテンツの情報
-    is_read = models.BooleanField(default=False)  # 通知の状態
-    created_at = models.DateTimeField(auto_now_add=True)  # 通知の作成日時
+    content = models.TextField(blank=True, null=True) 
+    content_EN = models.TextField(blank=True, null=True) 
+    content_JA = models.TextField(blank=True, null=True) 
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True) 
     post = models.ForeignKey('Post',related_name='post', null=True, blank=True, on_delete=models.CASCADE)
     parent = models.ForeignKey('Post',related_name='related_post', null=True, blank=True, on_delete=models.CASCADE)
 

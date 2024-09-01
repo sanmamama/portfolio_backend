@@ -134,7 +134,7 @@ class RepostViewSet(viewsets.ModelViewSet):
         
         #通知
         if self.request.user != post.owner:
-            notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="repost",content=post.content,post_id=post_id)
+            notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="repost",content=post.content,content_JA=post.content_JA,content_EN=post.content_EN,post_id=post_id)
 
         if Repost.objects.filter(user=user, post=post).exists():
             Repost.objects.filter(user=user, post=post).delete()
@@ -286,7 +286,7 @@ class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
         post = get_object_or_404(Post, id=post_id)
         like, created = Like.objects.get_or_create(user=self.request.user, post=post)
         if self.request.user != post.owner:
-            notification, _ = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="like",content=post.content,post_id=post_id)
+            notification, _ = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="like",content=post.content,content_EN=post.content_EN,content_JA=post.content_JA,post_id=post_id)
         if not created:
             like.delete()  # 既に「いいね」している場合は「いいね」を解除
             if self.request.user != post.owner:
@@ -524,13 +524,13 @@ class PostViewSet(viewsets.ModelViewSet):
         
             
         target_lang = "EN"
-        detected_source_language,translated_text = translate_text(message, target_lang)
-        serializer.save(content_EN=translated_text)
+        detected_source_language,content_EN = translate_text(message, target_lang)
+        serializer.save(content_EN=content_EN)
 
         if detected_source_language != "JA":
             target_lang = "JA"
-            detected_source_language,translated_text = translate_text(message, target_lang)
-            serializer.save(content_JA=translated_text)
+            detected_source_language,content_JA = translate_text(message, target_lang)
+            serializer.save(content_JA=content_JA)
         else:
             serializer.save(content_JA=message)
 
@@ -539,7 +539,7 @@ class PostViewSet(viewsets.ModelViewSet):
             post = Post.objects.filter(id=parent.id).first()
             #通知
             if self.request.user != post.owner:
-                notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="reply",content=message,post_id=serializer.data['id'],parent=post)
+                notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=post.owner,notification_type="reply",content=message,content_JA=content_JA,content_EN=content_EN,post_id=serializer.data['id'],parent=post)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

@@ -165,8 +165,14 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True              
 ACCOUNT_UNIQUE_EMAIL = True                
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # 開発中にコンソールにメールを表示
 ACCOUNT_ADAPTER = 'api.adapters.CustomAccountAdapter'
+
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # 開発中にコンソールにメールを表示
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -181,7 +187,6 @@ REST_FRAMEWORK = {
 	'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
 }
 
-# dj-rest-authでJWT認証をする設定
 REST_AUTH = {
 	'REGISTER_SERIALIZER': 'api.serializer.CustomRegisterSerializer',
 }

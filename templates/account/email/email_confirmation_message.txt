@@ -1,9 +1,6 @@
-{{ user.username }} 様、
+{{ user.username }} 様
 
 メールアドレスの確認を行ってください。
 
 以下のリンクをクリックして、メールアドレスを確認してください:
 {{ activate_url }}
-
-ありがとうございます！
-{{ current_site.name }} チーム

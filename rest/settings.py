@@ -167,7 +167,7 @@ ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  
 ACCOUNT_ADAPTER = 'api.adapters.CustomAccountAdapter'
 
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # 開発中にコンソールにメールを表示
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # 開発中にコンソール
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

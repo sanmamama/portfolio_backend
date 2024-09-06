@@ -450,7 +450,8 @@ class PostViewSet(viewsets.ModelViewSet):
     def filter_timeline(self, request):
         mention_ids = list(Mention.objects.filter(user_to_id=request.user.id).values_list('post_id', flat=True))
         following_ids = list(Follow.objects.filter(follower_id=request.user.id).values_list('following_id', flat=True))
-        posts = Post.objects.filter(Q(owner_id=request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=mention_ids))
+        #posts = Post.objects.filter(Q(owner_id=request.user.id) | Q(owner_id__in=following_ids) | Q(id__in=mention_ids) | Q(parent__owner_id=request.user.id)) #本来はこっち。タイムラインに自分とフォローしている人とメンション、リプライ受信のみ
+        posts = Post.objects.all() 
         reposts = Repost.objects.filter(Q(user_id=request.user.id) | Q(user_id__in=following_ids)).select_related('post')
         
         timeline_posts = list(posts)

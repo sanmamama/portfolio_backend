@@ -16,9 +16,10 @@ class PostAdmin(admin.ModelAdmin):
     form = PostAdminForm
 """
 
-
+admin.site.register(User)
+admin.site.register(Post)
 admin.site.register(Blog, MarkdownxModelAdmin)
 admin.site.register(Tag)
-admin.site.register(Comment)
+#admin.site.register(Comment)
 admin.site.register(Category)
 admin.site.register(Contact)

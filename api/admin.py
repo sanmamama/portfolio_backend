@@ -18,6 +18,7 @@ class PostAdmin(admin.ModelAdmin):
 
 admin.site.register(User)
 admin.site.register(Post)
+admin.site.register(Message)
 admin.site.register(Blog, MarkdownxModelAdmin)
 admin.site.register(Tag)
 #admin.site.register(Comment)

@@ -95,7 +95,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Notification
-        fields = ['id', 'sender', 'receiver', 'notification_type', 'content','content_JA','content_EN', 'is_read', 'created_at', 'post', 'parent']
+        fields = ['id', 'sender', 'receiver', 'notification_type', 'content','content_JA','content_EN' ,'content_ZH', 'is_read', 'created_at', 'post', 'parent']
         read_only_fields = ['sender', 'receiver', 'created_at']
 
 
@@ -151,7 +151,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'owner', 'content', 'content_EN', 'content_JA', 'created_at','view_count', 'like_count','repost_count', 'repost_user', 'repost_created_at','reply_count','parent']
+        fields = ['id', 'owner', 'content', 'content_EN', 'content_JA','content_ZH', 'created_at','view_count', 'like_count','repost_count', 'repost_user', 'repost_created_at','reply_count','parent']
         read_only_fields = ['created_at','owner', 'like_count','repost_count']
 
     def get_like_count(self, obj):

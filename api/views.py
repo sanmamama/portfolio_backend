@@ -138,10 +138,6 @@ class RepostViewSet(viewsets.ModelViewSet):
                 sender=self.request.user,
                 receiver=post.owner,
                 notification_type="repost",
-                content=post.content,
-                content_JA=post.content_JA,
-                content_EN=post.content_EN,
-                content_ZH=post.content_ZH,
                 post_id=post_id
                 )
 
@@ -207,16 +203,22 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        
+        instance = serializer.save()
 
         receiver_user = serializer.validated_data.get('user_to')
-        message = serializer.validated_data.get('content')
 
-        #通知
+        # 通知
         if self.request.user != receiver_user:
-            notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=receiver_user,notification_type="message",content=message)
+            notification, created = Notification.objects.get_or_create(
+                sender=self.request.user,
+                receiver=receiver_user,
+                notification_type="message",
+                message=instance
+            )
 
         headers = self.get_success_headers(serializer.data)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class MemberListViewSet(viewsets.ModelViewSet):
@@ -299,10 +301,6 @@ class LikeViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
                 sender=self.request.user,
                 receiver=post.owner,
                 notification_type="like",
-                content=post.content,
-                content_EN=post.content_EN,
-                content_JA=post.content_JA,
-                content_ZH=post.content_ZH,
                 post_id=post_id
                 )
         if not created:
@@ -362,7 +360,10 @@ class FollowViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet): #viewsets.
         if following_id == follower_id:
             raise ValidationError("自分自身をフォローすることはできません。")
         
-        notification, created = Notification.objects.get_or_create(sender=self.request.user,receiver=serializer.validated_data.get('following'),notification_type="follow",)
+        notification, created = Notification.objects.get_or_create(
+            sender=self.request.user,
+            receiver=serializer.validated_data.get('following'),
+            notification_type="follow",)
 
         existing_follow = Follow.objects.filter(follower_id=follower_id, following_id=following_id).first()
         if existing_follow:
@@ -576,10 +577,6 @@ class PostViewSet(viewsets.ModelViewSet):
                     sender=self.request.user,
                     receiver=post.owner,
                     notification_type="reply",
-                    content=message,
-                    content_JA=post.content_JA,
-                    content_EN=post.content_EN,
-                    content_ZH=post.content_ZH,
                     post_id=serializer.data['id'],
                     parent=post)
 

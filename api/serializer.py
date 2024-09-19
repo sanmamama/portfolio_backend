@@ -89,14 +89,7 @@ class UserSerializer(serializers.ModelSerializer):
         return repost_idx
     
 
-class NotificationSerializer(serializers.ModelSerializer):
-    sender = UserSerializer(read_only=True)
-    receiver = UserSerializer(read_only=True)
-    
-    class Meta:
-        model = Notification
-        fields = ['id', 'sender', 'receiver', 'notification_type', 'content','content_JA','content_EN' ,'content_ZH', 'is_read', 'created_at', 'post', 'parent']
-        read_only_fields = ['sender', 'receiver', 'created_at']
+
 
 
 
@@ -197,7 +190,12 @@ class PostSerializer(serializers.ModelSerializer):
                     user_to=mention_user_to
                 )
                 #通知
-                notification, created = Notification.objects.get_or_create(sender=mention.user_from,receiver=mention.user_to,notification_type="mention",content=post.content,post_id=post.id)
+                notification, created = Notification.objects.get_or_create(
+                    sender=mention.user_from,
+                    receiver=mention.user_to,
+                    notification_type="mention",
+                    post_id=post.id)
+                
             except User.DoesNotExist:
                 # ユーザーが存在しない場合の処理
                 pass
@@ -207,7 +205,16 @@ class PostSerializer(serializers.ModelSerializer):
         post.save()
         return post
     
-
+class NotificationSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    receiver = UserSerializer(read_only=True)
+    post = PostSerializer(read_only=True)
+    message = MessageSerializer(read_only=True)
+    
+    class Meta:
+        model = Notification
+        fields = ['id', 'sender', 'receiver', 'notification_type', 'is_read', 'created_at', 'message', 'post', 'parent']
+        read_only_fields = ['sender', 'receiver', 'created_at']
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:

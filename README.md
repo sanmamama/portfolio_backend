@@ -31,14 +31,15 @@
 ## 主な機能の使い方
 **ブログアプリ**
 
+
 |        **記事の閲覧**        |         **記事の検索**          |      **カテゴリ等別一覧表示機能**       |
 |:---------------------------:|:--------------------------:|:---------------------------:|
-| <img src="public/images/readme/view.gif" alt="記事の閲覧" width="200"> | <img src="public/images/readme/search.gif" alt="記事の検索" width="200"> | <img src="public/images/readme/listview.gif" alt="カテゴリ等別一覧表示機能" width="200"> |
+| <img src="https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/view.gif" alt="記事の閲覧" width="200"> | <img src="https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/search.gif" alt="記事の検索" width="200"> | <img src="https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/listview.gif" alt="カテゴリ等別一覧表示機能" width="200"> |
 
 **SNSアプリ**  
 |        **ポスト機能**        |         **言語切替機能**          |      **メッセージ機能**       |
 |:---------------------------:|:--------------------------:|:---------------------------:|
-| <img src="public/images/readme/post.gif" alt="ポスト機能" width="200"> | <img src="public/images/readme/translate.gif" alt="言語切替機能" width="200"> | <img src="public/images/readme/message.gif" alt="メッセージ機能" width="200"> |
+| <img src="https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/post.gif" alt="ポスト機能" width="200"> | <img src="https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/translate.gif" alt="言語切替機能" width="200"> | <img src="https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/message.gif" alt="メッセージ機能" width="200"> |
 
 ## その他機能一覧  
 **ブログアプリ**  
@@ -64,13 +65,13 @@
 
 ## ER図
 **ブログアプリ**    
-![ブログアプリER図](public/images/readme/blog_er.dio.drawio.png)    
+![ブログアプリER図](https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/blog_er.dio.drawio.png)    
   
 **SNSアプリ**    
-![SNSアプリER図](public/images/readme/postter_er.dio.drawio.png)    
+![SNSアプリER図](https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/postter_er.dio.drawio.png)    
 
 ## インフラ構成図
-![インフラ図](public/images/readme/infra-image.png)
+![インフラ図](https://github.com/sanmamama/portfolio_frontend/blob/main/public/images/readme/infra-image.png)
 
 ## 主な使用技術
 | カテゴリー | 使用技術 | 

@@ -617,14 +617,14 @@ class UserViewSet(viewsets.ModelViewSet):
 #イカ、ブログ#
 
 class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Blog.objects.all().order_by('created_at').reverse()
+    queryset = Blog.objects.filter(is_draft=False).order_by('created_at').reverse()
     serializer_class = BlogSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = BlogFilter
 
     @action(detail=False, methods=['get'])
     def all(self, request):
-        posts = Blog.objects.all().order_by('created_at').reverse()
+        posts = Blog.objects.filter(is_draft=False).order_by('created_at').reverse()
         serializer = BlogSerializer(posts, many=True)
         return Response(serializer.data)
 

@@ -146,17 +146,17 @@ class Tag(models.Model):
         return self.name
 	
 class Blog(models.Model):
-	title = models.CharField(max_length=100)
-	content = MarkdownxField()
-	img = models.ImageField(upload_to='media/')
-	created_at = models.DateTimeField()
-	updated_at = models.DateTimeField()
-	category = models.ForeignKey('Category', on_delete=models.CASCADE)
-	tag = models.ManyToManyField(Tag,blank=True)
-	likes = models.PositiveIntegerField(default=0)
-	def __str__(self):
-		return self.title
-     
+    title = models.CharField(max_length=100)
+    content = MarkdownxField()
+    img = models.ImageField(upload_to='media/')
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+    tag = models.ManyToManyField(Tag,blank=True)
+    likes = models.PositiveIntegerField(default=0)
+    is_draft = models.BooleanField(default=False)
+    def __str__(self):
+        return self.title
 
 
 class Comment(models.Model):

@@ -205,6 +205,45 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         instance = serializer.save()
+        
+        message = serializer.validated_data.get('content')
+
+        #翻訳
+        def translate_text(text, target_lang):
+            url = "https://api-free.deepl.com/v2/translate"
+            data = {
+                'auth_key': DEEPL_API_KEY,
+                'text': text,
+                'target_lang': target_lang,
+            }
+            response = requests.post(url, data=data)
+            if response.status_code == 200:
+                result = response.json()
+                # print(result) {'translations': [{'detected_source_language': 'EN', 'text': 'what are you doing now?'}]}
+                return result['translations'][0]['detected_source_language'],result['translations'][0]['text']
+            else:
+                return None
+            
+        #まずは英語で叩く
+        target_lang = "EN"
+        detected_source_language,content_EN = translate_text(message, target_lang)
+        serializer.save(content_EN=content_EN)
+
+        #原文が日本語ではないならDeepL叩く
+        if detected_source_language != "JA": 
+            target_lang = "JA"
+            detected_source_language,content_JA = translate_text(message, target_lang)
+            serializer.save(content_JA=content_JA)
+        else: 
+            serializer.save(content_JA=message)
+
+        #原文が中国語ではないならDeepL叩く
+        if detected_source_language != "ZH": 
+            target_lang = "ZH"
+            detected_source_language,content_ZH = translate_text(message, target_lang)
+            serializer.save(content_ZH=content_ZH)
+        else: 
+            serializer.save(content_ZH=message)
 
         receiver_user = serializer.validated_data.get('user_to')
 
@@ -617,6 +656,7 @@ class UserViewSet(viewsets.ModelViewSet):
 #イカ、ブログ#
 
 class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
+    #
     queryset = Blog.objects.filter(is_draft=False).order_by('created_at').reverse()
     serializer_class = BlogSerializer
     filter_backends = (DjangoFilterBackend,)

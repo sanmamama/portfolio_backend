@@ -54,6 +54,9 @@ class Message(models.Model):
     user_from = models.ForeignKey('User',related_name='messages_sent', on_delete=models.CASCADE)
     user_to = models.ForeignKey('User',related_name='messages_received', on_delete=models.CASCADE)
     content = models.TextField(max_length=1000)
+    content_EN = models.TextField(null=True, blank=True)
+    content_JA = models.TextField(null=True, blank=True)
+    content_ZH = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

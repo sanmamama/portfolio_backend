@@ -39,7 +39,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['id', 'user_to', 'content', 'created_at']
+        fields = ['id', 'user_to', 'content', 'content_JA', 'content_EN', 'content_ZH', 'created_at']
         read_only_fields = ['user_from', 'created_at']
 
     def create(self, validated_data):
@@ -100,7 +100,7 @@ class MessageUserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['id', 'user_from', 'user_to', 'content', 'created_at']
+        fields = ['id', 'user_from', 'user_to', 'content', 'content_JA', 'content_EN', 'content_ZH', 'created_at']
 
 class MemberListSerializer(serializers.ModelSerializer):
     owner = UserSerializer()

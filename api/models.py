@@ -142,6 +142,26 @@ class Notification(models.Model):
 
 #ブログアプリ
 
+class Book(models.Model):
+    STATUS_CHOICES = [
+        ('読書中', '読書中'),
+        ('読了', '読了'),
+        ('積読', '積読')
+    ]
+
+    title = models.CharField(max_length=255)
+    author = models.CharField(max_length=255)
+    publisher = models.CharField(max_length=255)
+    genre = models.CharField(max_length=100, blank=True, null=True)
+    rating = models.PositiveSmallIntegerField(blank=True, null=True)
+    read_date = models.DateField(null=True, blank=True)
+    review = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='reading')
+    isbn = models.CharField(max_length=13)
+
+    class Meta:
+        ordering = ['-read_date']
+
 class Tag(models.Model):
     name = models.CharField('タグ', max_length=50)
 

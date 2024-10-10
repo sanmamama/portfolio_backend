@@ -14,6 +14,7 @@ router.register(r'blog', views.BlogFilterViewSet)
 router.register(r'category', views.CategoryViewSet)
 router.register(r'tag', views.TagViewSet)
 router.register(r'contact', views.ContactCreateView)
+router.register(r'book', views.BookViewSet)
 
 postterRouter = DefaultRouter()
 postterRouter.register(r'user', views.UserViewSet, basename='user')

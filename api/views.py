@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .filters import BlogFilter
 from .models import *
-from .serializer import BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer
+from .serializer import BookSerializer,BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
@@ -691,3 +691,7 @@ class LikeBlogView(APIView):
         blog.likes += 1
         blog.save()
         return Response({'likes': blog.likes}, status=status.HTTP_200_OK)
+    
+class BookViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = BookSerializer
+    queryset = Book.objects.all()

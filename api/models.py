@@ -162,6 +162,9 @@ class Book(models.Model):
     class Meta:
         ordering = ['-read_date']
 
+    def __str__(self):
+        return self.title
+
 class Tag(models.Model):
     name = models.CharField('タグ', max_length=50)
 

@@ -692,6 +692,14 @@ class LikeBlogView(APIView):
         blog.save()
         return Response({'likes': blog.likes}, status=status.HTTP_200_OK)
     
+from django.db.models import Case, When, Value, IntegerField
 class BookViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = BookSerializer
-    queryset = Book.objects.all()
+    queryset = Book.objects.all().annotate(
+        status_order=Case(
+            When(status='読書中', then=Value(1)),
+            When(status='積読', then=Value(2)),
+            When(status='読了', then=Value(3)),
+            output_field=IntegerField(),
+        )
+    ).order_by('status_order', '-read_date')

@@ -154,6 +154,7 @@ class Book(models.Model):
     publisher = models.CharField(max_length=255)
     genre = models.CharField(max_length=100, blank=True, null=True)
     rating = models.PositiveSmallIntegerField(blank=True, null=True)
+    buy_date = models.DateField(null=True, blank=True)
     read_date = models.DateField(null=True, blank=True)
     review = models.TextField(blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='reading')

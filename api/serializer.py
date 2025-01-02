@@ -297,10 +297,7 @@ class BlogSerializer(serializers.ModelSerializer):
     toc_html = serializers.SerializerMethodField()
     img = serializers.SerializerMethodField()
     
-    def get_img(self, obj):
-        if obj.img:
-            return obj.img.url
-        return '/media/no_image.png'
+
 
     class Meta:
         model = Blog

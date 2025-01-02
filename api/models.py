@@ -175,7 +175,7 @@ class Tag(models.Model):
 class Blog(models.Model):
     title = models.CharField(max_length=100)
     content = MarkdownxField()
-    img = models.ImageField(upload_to='media/')
+    img = models.ImageField(upload_to='media/', blank=True, default='media/no_image.png')
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
     category = models.ForeignKey('Category', on_delete=models.CASCADE)

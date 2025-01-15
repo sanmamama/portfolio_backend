@@ -18,10 +18,8 @@ jobs:
 
     - name: Create credential file
       run: |
-        sudo echo "${{ secrets.API_SECRETS_FILE }}" > secrets.py
-        sudo mv secrets.py /api/secrets.py
-        sudo echo "${{ secrets.REST_SECRETS_FILE }}" > secrets2.py
-        sudo mv secrets2.py /rest/secrets.py
+        sudo echo "${{ secrets.API_SECRETS_FILE }}" > api/secrets.py
+        sudo echo "${{ secrets.REST_SECRETS_FILE }}" > rest/secrets.py
 
     - name: Build Docker image
       run: |

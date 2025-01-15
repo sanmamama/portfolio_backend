@@ -18,7 +18,8 @@ jobs:
 
     - name: Create credential file
       run: |
-        ls
+        mkdir -p /api
+        mkdir -p /rest
         echo "${{ secrets.API_SECRETS_FILE }}" > /api/secrets.py
         echo "${{ secrets.REST_SECRETS_FILE }}" > /rest/secrets.py
 

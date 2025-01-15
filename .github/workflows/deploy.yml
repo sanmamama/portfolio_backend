@@ -18,8 +18,8 @@ jobs:
 
     - name: Create credential file
       run: |
-        echo "${{ secrets.API_SECRETS_FILE }}" > ~/api/secrets.py
-        echo "${{ secrets.REST_SECRETS_FILE }}" > ~/rest/secrets.py
+        echo "${{ secrets.API_SECRETS_FILE }}" > /api/secrets.py
+        echo "${{ secrets.REST_SECRETS_FILE }}" > /rest/secrets.py
 
     - name: Build Docker image
       run: |

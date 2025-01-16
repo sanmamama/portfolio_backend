@@ -78,8 +78,9 @@
 |:-----------|:------------|
 | フロントエンド | React18.3.1, HTML/CSS, JavaScript | 
 | バックエンド | Django5.0.6, Python3.12.4 |
-| データベース | SQLite |
+| データベース | postgreSQL |
 | CI / CD | GitHub Actions |
 | インフラ | VPS(Ubuntu) / Nginx / Gunicorn / Certbot |
+| 環境構築 | Docker / Docker Compose |
 
 

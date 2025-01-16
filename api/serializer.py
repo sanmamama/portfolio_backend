@@ -49,7 +49,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    avatar_imgurl = AbsoluteURLField()
+    avatar_imgurl = serializers.ImageField()
     post_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     follower_count = serializers.SerializerMethodField()
@@ -63,6 +63,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id','uid','username','avatar_imgurl', 'profile_statement','locale','post_count','following_count','follower_count','following','follower','like','repost') #,'email'
 
+    def to_representation(self, instance):
+        """カスタムレスポンスの処理を追加"""
+        representation = super().to_representation(instance)
+        if instance.avatar_imgurl:
+            representation['avatar_imgurl'] = instance.avatar_imgurl.url  # 相対パスに変換
+        return representation
+    
     def get_post_count(self, obj):#selfはシリアライザインスタンス自体を指しますが、objは現在シリアライザにバインドされているオブジェクト、すなわちシリアライザが処理しているモデルインスタンスを指します。
         return Post.objects.filter(owner=obj).count()
 

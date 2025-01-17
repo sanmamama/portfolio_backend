@@ -13,12 +13,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 本番環境
 DEBUG = False
-ALLOWED_HOSTS = ['backend','sanmamama.com','www.sanmamama.com']
+ALLOWED_HOSTS = ['backend','sanmamama.com','www.sanmamama.com','127.0.0.1']
 CORS_ORIGIN_WHITELIST = [
 	'http://127.0.0.1:3000',
 	'http://127.0.0.1:80',
 	'http://127.0.0.1:8000',
 ]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
 ROOT_URLCONF = 'rest.urls'
 WSGI_APPLICATION = 'rest.wsgi.application'
@@ -121,7 +124,7 @@ USE_TZ = True
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
 #本番環境
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
+STATIC_URL = '/backend_static/'
 
 
 #MEDIA_DIR

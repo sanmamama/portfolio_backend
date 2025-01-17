@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 本番環境
 DEBUG = False
-ALLOWED_HOSTS = ['backend']
+ALLOWED_HOSTS = ['backend','sanmamama.com','www.sanmamama.com']
 CORS_ORIGIN_WHITELIST = [
 	'http://127.0.0.1:3000',
 	'http://127.0.0.1:80',

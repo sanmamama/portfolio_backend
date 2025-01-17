@@ -20,6 +20,9 @@ COPY . .
 RUN pip install -r requirements.txt
 RUN pip install gunicorn
 
+# 静的ファイルの収集
+RUN python manage.py collectstatic --noinput
+
 # ポートを開放
 EXPOSE 8000
 

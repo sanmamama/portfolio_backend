@@ -9,3 +9,4 @@
 db.sqlite3
 /rest/migrations
 /api/migrations
+/staticfiles

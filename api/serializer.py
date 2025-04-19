@@ -333,6 +333,9 @@ class BlogSerializer(serializers.ModelSerializer):
 
         # </h[1-7]> の後に <hr> を挿入
         html = re.sub(r'(</h[1-7]>)', r'\1<hr class="mt-1 mb-1"/>', html)
+
+        # <img  タグにクラスを追加する
+        html = re.sub(r'(<img.*?)(/>)', r'\1 class="img-fluid" />', html)
         
         return html
     

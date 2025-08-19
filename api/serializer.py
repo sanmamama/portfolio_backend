@@ -323,7 +323,7 @@ class BlogSerializer(serializers.ModelSerializer):
             counter['h_tag'] += 1
             if counter['h_tag'] == 1:
                 # 1回目のヒットはmt-5いれない
-                return f'{match.group(1)} class="anchor mt-5 mb-1 pt-0 pb-0" {match.group(2)}'
+                return f'{match.group(1)} class="anchor mt-1 mb-1 pt-0 pb-0" {match.group(2)}'
             else:
                 # 2回目以降はクラスを追加
                 return f'{match.group(1)} class="anchor mt-5 mb-0 pt-0 pb-0" {match.group(2)}'
@@ -332,7 +332,7 @@ class BlogSerializer(serializers.ModelSerializer):
         html = re.sub(r'(<h[1-7])(.*?>)', replace_h_tag, html)
 
         # </h[1-7]> の後に <hr> を挿入
-        html = re.sub(r'(</h[1-7]>)', r'\1<hr class="mt-1 mb-1"/>', html)
+        html = re.sub(r'(</h[1-7]>)', r'\1<hr class="mt-3 mb-3"/>', html)
 
         # <img  タグにクラスを追加する
         html = re.sub(r'(<img.*?)(/>)', r'\1 class="img-fluid" />', html)

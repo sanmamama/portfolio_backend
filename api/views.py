@@ -657,7 +657,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
     #
-    queryset = Blog.objects.filter(is_draft=False).order_by('created_at').reverse()
+    queryset = Blog.objects.filter(is_draft=False).select_related('category').prefetch_related('tag').order_by('-created_at')
     serializer_class = BlogSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = BlogFilter

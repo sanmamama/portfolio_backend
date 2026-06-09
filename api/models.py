@@ -174,12 +174,13 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 	
+
 class Blog(models.Model):
     title = models.CharField(max_length=100)
     content = MarkdownxField()
     img = models.ImageField(blank=True, default='no_image.png')
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
     tag = models.ManyToManyField(Tag,blank=True)
     likes = models.PositiveIntegerField(default=0)

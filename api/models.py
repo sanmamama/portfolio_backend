@@ -3,6 +3,8 @@ from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser,  PermissionsMixin
 from markdownx.models import MarkdownxField
 import uuid
+import markdown
+import re
 
 #postter
 
@@ -182,8 +184,51 @@ class Blog(models.Model):
     tag = models.ManyToManyField(Tag,blank=True)
     likes = models.PositiveIntegerField(default=0)
     is_draft = models.BooleanField(default=False)
+    content_html = models.TextField(blank=True)
+    toc_html = models.TextField(blank=True)
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+
+        md = markdown.Markdown(
+            extensions=['toc']
+        )
+
+        html = md.convert(self.content)
+
+        counter = {'h_tag': 0}
+
+        def replace_h_tag(match):
+            counter['h_tag'] += 1
+
+            if counter['h_tag'] == 1:
+                return f'{match.group(1)} class="anchor mt-1 mb-1 pt-0 pb-0" {match.group(2)}'
+
+            return f'{match.group(1)} class="anchor mt-5 mb-0 pt-0 pb-0" {match.group(2)}'
+
+        html = re.sub(
+            r'(<h[1-7])(.*?>)',
+            replace_h_tag,
+            html
+        )
+
+        html = re.sub(
+            r'(</h[1-7]>)',
+            r'\1<hr class="mt-3 mb-3"/>',
+            html
+        )
+
+        html = re.sub(
+            r'(<img.*?)(/>)',
+            r'\1 class="img-fluid" />',
+            html
+        )
+
+        self.content_html = html
+        self.toc_html = md.toc
+
+        super().save(*args, **kwargs)
 
 
 class Comment(models.Model):

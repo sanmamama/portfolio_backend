@@ -2,7 +2,7 @@
 # Python 3.12.4
 
 annotated-types==0.7.0
-anyio==4.4.0
+anyio==4.14.2
 asgiref==3.8.1
 beautifulsoup4==4.12.3
 bootstrap4==0.1.0

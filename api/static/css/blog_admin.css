@@ -1,19 +1,17 @@
 /* Markdown入力欄とプレビューを横並び */
 .markdownx {
-    display: flex;
+    display: flex !important;
     gap: 20px;
     width: 100%;
     align-items: flex-start;
 }
 
-/* 左：Markdown入力欄 */
 .markdownx-editor {
     flex: 1;
     min-width: 0;
     box-sizing: border-box;
 }
 
-/* 右：プレビュー */
 .markdownx-preview {
     flex: 1;
     min-width: 0;

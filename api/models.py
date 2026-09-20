@@ -206,6 +206,29 @@ class Blog(models.Model):
             extensions=['toc']
         )
 
+        # :::answer ～ ::: を <details> に変換
+        def replace_answer(match):
+            answer_content = match.group(1).strip()
+
+            answer_md = markdown.Markdown()
+            answer_html = answer_md.convert(answer_content)
+
+            return f'''
+    <details class="answer-box">
+    <summary>答えを見る</summary>
+    <div class="answer-content">
+    {answer_html}
+    </div>
+    </details>
+    '''
+
+        content = re.sub(
+            r':::answer\s*\n(.*?)\n:::',
+            replace_answer,
+            self.content,
+            flags=re.DOTALL
+        )
+
         html = md.convert(self.content)
 
         counter = {'h_tag': 0}

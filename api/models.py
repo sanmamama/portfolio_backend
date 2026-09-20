@@ -175,10 +175,20 @@ class Tag(models.Model):
         return self.name
 	
 
+import os
+import uuid
+
+def blog_image_upload_to(instance, filename):
+    # 元ファイルの拡張子を取得
+    ext = os.path.splitext(filename)[1].lower()
+
+    # UUIDをファイル名として使用
+    return f'blog/{uuid.uuid4().hex}{ext}'
+
 class Blog(models.Model):
     title = models.CharField(max_length=100)
     content = MarkdownxField()
-    img = models.ImageField(blank=True, default='no_image.png')
+    img = models.ImageField(upload_to=blog_image_upload_to, blank=True, default='no_image.png')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     category = models.ForeignKey('Category', on_delete=models.CASCADE)

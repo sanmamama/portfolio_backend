@@ -1,3 +1,4 @@
+/* Markdown入力欄とプレビューを横並び */
 .markdownx {
     display: flex;
     gap: 20px;
@@ -5,15 +6,19 @@
     align-items: flex-start;
 }
 
+/* 左：Markdown入力欄 */
 .markdownx-editor {
-    width: 50% !important;
+    flex: 1;
+    min-width: 0;
     box-sizing: border-box;
 }
 
+/* 右：プレビュー */
 .markdownx-preview {
-    width: 50%;
+    flex: 1;
+    min-width: 0;
     box-sizing: border-box;
     padding: 10px;
-    min-height: 300px;
-    overflow: auto;
+    border: 1px solid #ddd;
+    min-height: 171px;
 }

@@ -214,12 +214,12 @@ class Blog(models.Model):
             answer_html = answer_md.convert(answer_content)
 
             return f'''
-    <details class="answer-box">
-    <summary>答えを見る</summary>
-    <div class="answer-content">
-    {answer_html}
-    </div>
-    </details>
+<details class="answer-box">
+<summary>答えを見る</summary>
+<div class="answer-content">
+{answer_html}
+</div>
+</details>
     '''
 
         content = re.sub(

@@ -223,7 +223,7 @@ class Blog(models.Model):
     '''
 
         content = re.sub(
-            r':::answer\s*\n(.*?)\n:::',
+            r':::answer\s*(.*?)\s*:::'
             replace_answer,
             self.content,
             flags=re.DOTALL

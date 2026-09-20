@@ -26,8 +26,13 @@ admin.site.register(Notification)
 admin.site.register(User)
 admin.site.register(Post)
 admin.site.register(Message)
-admin.site.register(Blog, MarkdownxModelAdmin)
 admin.site.register(Tag)
 admin.site.register(Category)
 admin.site.register(Contact)
 admin.site.register(Book)
+class BlogAdmin(MarkdownxModelAdmin):
+    class Media:
+        css = {
+            'all': ('css/blog_admin.css',)
+        }
+admin.site.register(Blog, BlogAdmin)

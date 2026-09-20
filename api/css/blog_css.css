@@ -1,0 +1,19 @@
+.markdownx {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.markdownx-editor {
+    width: 50% !important;
+    box-sizing: border-box;
+}
+
+.markdownx-preview {
+    width: 50%;
+    box-sizing: border-box;
+    padding: 10px;
+    min-height: 300px;
+    overflow: auto;
+}

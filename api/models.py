@@ -229,7 +229,7 @@ class Blog(models.Model):
             flags=re.DOTALL
         )
 
-        html = md.convert(self.content)
+        html = md.convert(content)
 
         counter = {'h_tag': 0}
 

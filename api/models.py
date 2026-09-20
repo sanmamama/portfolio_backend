@@ -262,7 +262,7 @@ class Blog(models.Model):
         self.content_html = html
         self.toc_html = md.toc
 
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs) 
 
 
 class Comment(models.Model):

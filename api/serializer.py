@@ -314,6 +314,7 @@ class BlogSerializer(serializers.ModelSerializer):
             'updated_at',
             'likes',
             'toc_html',
+            'thumbnail',
         )
 
 class ContactSerializer(serializers.ModelSerializer):

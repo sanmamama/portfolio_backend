@@ -177,6 +177,9 @@ class Tag(models.Model):
 
 import os
 import uuid
+from io import BytesIO
+from PIL import Image, ImageOps
+from django.core.files.base import ContentFile
 
 def blog_image_upload_to(instance, filename):
     # 元ファイルの拡張子を取得
@@ -189,6 +192,12 @@ class Blog(models.Model):
     title = models.CharField(max_length=100)
     content = MarkdownxField()
     img = models.ImageField(upload_to=blog_image_upload_to, blank=True, default='no_image.png')
+    thumbnail = models.ImageField(
+        upload_to='blog/thumbnails/',
+        blank=True,
+        default='',
+        editable=False
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
@@ -200,7 +209,97 @@ class Blog(models.Model):
     def __str__(self):
         return self.title
     
+    def generate_thumbnail(self, using=None):
+        # 画像なし・デフォルト画像の場合はサムネイルを使用しない
+        if not self.img or self.img.name == 'no_image.png':
+            if self.thumbnail:
+                self.thumbnail = ''
+                return True
+            return False
+
+        # 新しいファイルがアップロードされたか
+        image_changed = not self.img._committed
+
+        # 保存済み画像のパスが変更された場合も検知する
+        if self.pk and not image_changed:
+            old_img = (
+                type(self).objects.using(using or self._state.db)
+                .filter(pk=self.pk)
+                .values_list('img', flat=True)
+                .first()
+            )
+            image_changed = old_img != self.img.name
+
+        # 画像に変更がなく、サムネイルもあれば再生成しない
+        if not image_changed and self.thumbnail:
+            return False
+
+        # 元ファイルを読み取り、アップロード用の読み取り位置を戻す
+        self.img.open('rb')
+        try:
+            source_bytes = self.img.read()
+        finally:
+            self.img.seek(0)
+
+        with Image.open(BytesIO(source_bytes)) as source:
+            # スマートフォン写真などの回転情報を反映
+            image = ImageOps.exif_transpose(source)
+
+            # 透過情報を維持してWebP対応の形式に変換
+            if 'A' in image.getbands() or 'transparency' in image.info:
+                image = image.convert('RGBA')
+            else:
+                image = image.convert('RGB')
+
+            # 横幅だけを最大400pxに制限。小さい画像は拡大しない
+            if image.width > 400:
+                height = max(1, round(image.height * 400 / image.width))
+                image = image.resize(
+                    (400, height),
+                    Image.Resampling.LANCZOS
+                )
+
+            with BytesIO() as output:
+                image.save(
+                    output,
+                    format='WEBP',
+                    quality=80,
+                    method=6
+                )
+
+                self.thumbnail.save(
+                    f'{uuid.uuid4().hex}.webp',
+                    ContentFile(output.getvalue()),
+                    save=False
+                )
+
+        return True
+    
     def save(self, *args, **kwargs):
+
+        update_fields = kwargs.get('update_fields')
+
+        if update_fields is not None:
+            update_fields = set(update_fields)
+
+            # Djangoの「何も更新しない」という指定を維持
+            if not update_fields:
+                return
+
+            kwargs['update_fields'] = update_fields
+
+        # 通常保存、または画像を更新する部分保存の場合に実行
+        if update_fields is None or 'img' in update_fields:
+            thumbnail_changed = self.generate_thumbnail(
+                using=kwargs.get('using')
+            )
+
+            if thumbnail_changed and update_fields is not None:
+                update_fields.add('thumbnail')
+
+        # 本文だけを部分更新する場合も、生成したHTMLを保存する
+        if update_fields is not None and 'content' in update_fields:
+            update_fields.update({'content_html', 'toc_html'})
 
         md = markdown.Markdown(
             extensions=['toc']

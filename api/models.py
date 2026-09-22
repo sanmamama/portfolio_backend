@@ -302,7 +302,7 @@ class Blog(models.Model):
             update_fields.update({'content_html', 'toc_html'})
 
         md = markdown.Markdown(
-            extensions=['toc', 'fenced_code', 'tables']
+            extensions=['toc', 'fenced_code']
         )
 
         # :::answer ～ ::: を <details> に変換

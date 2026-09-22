@@ -191,7 +191,7 @@ def blog_image_upload_to(instance, filename):
 class Blog(models.Model):
     title = models.CharField(max_length=100)
     content = MarkdownxField()
-    img = models.ImageField(upload_to=blog_image_upload_to, blank=True, default='no_image.png')
+    img = models.ImageField(upload_to=blog_image_upload_to, blank=True, default='no_image.png') 
     thumbnail = models.ImageField(
         upload_to='blog/thumbnails/',
         blank=True,

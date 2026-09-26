@@ -80,3 +80,5 @@ jobs:
           sudo docker load < backend.tar.gz
           sudo docker-compose down
           sudo docker-compose up -d
+          sudo docker image prune -a -f --filter "until=24h"
+          rm -f backend.tar.gz

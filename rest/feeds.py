@@ -29,7 +29,7 @@ class LatestBlogFeed(Feed):
         if len(text) > 300:
             excerpt += "..."
 
-        url = f"https://www.sanmamama.com/blog/{item.id}"
+        url = f"https://www.sanmamama.com/detail/{item.id}"
 
         return (
             f"<p>{escape(excerpt)}</p>"
@@ -37,7 +37,7 @@ class LatestBlogFeed(Feed):
         )
 
     def item_link(self, item):
-        return f"/blog/{item.id}/"
+        return f"/detail/{item.id}/"
 
     def item_pubdate(self, item):
         return item.created_at

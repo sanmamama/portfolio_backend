@@ -27,8 +27,10 @@ postterRouter.register(r'listdetail', views.MemberListDetailViewSet, basename='l
 postterRouter.register(r'addmember', views.AddMemberViewSet, basename='addmember')
 postterRouter.register(r'repost', views.RepostViewSet, basename='repost')
 postterRouter.register(r'notification', views.NotificationViewSet,basename='notification')
+from .feeds import LatestBlogFeed
 
 urlpatterns = [ 
+    path("rss/", LatestBlogFeed(), name="blog-rss"),
 	path('markdownx/', include('markdownx.urls')),
 	path('admin/', admin.site.urls),
 

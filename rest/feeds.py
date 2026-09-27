@@ -1,6 +1,6 @@
 from django.contrib.syndication.views import Feed
 from django.urls import reverse
-from .models import Blog
+from api.models import Blog
 
 
 class LatestBlogFeed(Feed):

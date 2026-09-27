@@ -1,5 +1,7 @@
 from django.contrib.syndication.views import Feed
 from django.urls import reverse
+from django.utils.html import strip_tags
+from django.utils.html import escape
 from api.models import Blog
 
 
@@ -19,8 +21,20 @@ class LatestBlogFeed(Feed):
         return item.title
 
     def item_description(self, item):
-        # RSS本文としてHTMLをそのまま配信
-        return item.content_html
+        text = strip_tags(item.content_html)
+
+        # 冒頭300文字
+        excerpt = text[:300]
+
+        if len(text) > 300:
+            excerpt += "..."
+
+        url = f"https://www.sanmamama.com/blog/{item.id}"
+
+        return (
+            f"<p>{escape(excerpt)}</p>"
+            f'<p><a href="{url}">続きを読む</a></p>'
+        )
 
     def item_link(self, item):
         return f"/blog/{item.id}/"

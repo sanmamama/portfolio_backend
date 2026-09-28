@@ -37,7 +37,7 @@ class LatestBlogFeed(Feed):
         )
 
     def item_link(self, item):
-        return f"/blog/{item.id}/"
+        return f"/blog/{item.id}"
 
     def item_pubdate(self, item):
         return item.created_at

@@ -6,6 +6,8 @@ from api import views
 from django.conf import settings
 from django.conf.urls.static import static
 from api.views import LikeBlogView
+from django.contrib.sitemaps.views import sitemap
+from api.sitemaps import BlogSitemap
 
 
 
@@ -29,7 +31,13 @@ postterRouter.register(r'repost', views.RepostViewSet, basename='repost')
 postterRouter.register(r'notification', views.NotificationViewSet,basename='notification')
 from .feeds import LatestBlogFeed
 
+
+sitemaps = {
+    'blog': BlogSitemap,
+}
+
 urlpatterns = [ 
+    path('sitemap.xml',sitemap,{'sitemaps': sitemaps},name='django.contrib.sitemaps.views.sitemap'),
     path("rss/", LatestBlogFeed(), name="blog-rss"),
 	path('markdownx/', include('markdownx.urls')),
 	path('admin/', admin.site.urls),

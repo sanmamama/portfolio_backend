@@ -29,7 +29,7 @@ class LatestBlogFeed(Feed):
         if len(text) > 300:
             excerpt += "..."
 
-        url = f"https://www.sanmamama.com/blog/{item.id}"
+        url = f"https://sanmamama.com/blog/{item.id}"
 
         return (
             f"<p>{escape(excerpt)}</p>"

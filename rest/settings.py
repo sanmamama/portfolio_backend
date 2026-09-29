@@ -7,13 +7,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # 開発環境
-# DEBUG = True
+#DEBUG = True
 # ALLOWED_HOSTS = ['*']
 # CORS_ALLOW_ALL_ORIGINS = True
 
 # 本番環境
 DEBUG = False
-ALLOWED_HOSTS = ['backend','sanmamama.com','www.sanmamama.com','127.0.0.1']
+ALLOWED_HOSTS = ['backend','sanmamama.com','www.sanmamama.com','127.0.0.1','localhost']
 CORS_ORIGIN_WHITELIST = [
 	'http://127.0.0.1:3000',
 	'http://127.0.0.1:80',
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
 	'corsheaders',
 	'markdownx',
 	'django_filters',

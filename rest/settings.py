@@ -180,4 +180,9 @@ MARKDOWNX_MARKDOWN_EXTENSIONS = [
     'markdown.extensions.nl2br',
 ]
 
+MARKDOWNX_IMAGE_MAX_SIZE = {
+    "size": (800, 0),
+    "quality": 90,
+}
+
 

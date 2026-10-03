@@ -7,6 +7,26 @@ from rest_framework import serializers
 from django.conf import settings
 from markdownx.utils import markdownify
 import markdown
+from .serialization_queries import prepare_response
+
+
+class ResponseListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        iterable = data.all() if hasattr(data, 'all') else data
+        instances = list(iterable)
+        if self.parent is None:
+            prepare_response(instances)
+        return super().to_representation(instances)
+
+
+class ResponseModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        list_serializer_class = ResponseListSerializer
+
+    def to_representation(self, instance):
+        if self.parent is None:
+            prepare_response([instance])
+        return super().to_representation(instance)
 
 class AbsoluteURLField(serializers.Field):
     def to_representation(self, value):
@@ -48,7 +68,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ResponseModelSerializer):
     avatar_imgurl = serializers.ImageField()
     post_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
@@ -59,7 +79,7 @@ class UserSerializer(serializers.ModelSerializer):
     repost = serializers.SerializerMethodField()
     
 
-    class Meta:
+    class Meta(ResponseModelSerializer.Meta):
         model = User
         fields = ('id','uid','username','avatar_imgurl', 'profile_statement','locale','post_count','following_count','follower_count','following','follower','like','repost') #,'email'
 
@@ -71,27 +91,41 @@ class UserSerializer(serializers.ModelSerializer):
         return representation
     
     def get_post_count(self, obj):#selfはシリアライザインスタンス自体を指しますが、objは現在シリアライザにバインドされているオブジェクト、すなわちシリアライザが処理しているモデルインスタンスを指します。
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['post_count']
         return Post.objects.filter(owner=obj).count()
 
     def get_following_count(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return len(obj._response_stats['following'])
         return Follow.objects.filter(follower=obj).count()
 
     def get_follower_count(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return len(obj._response_stats['follower'])
         return Follow.objects.filter(following=obj).count()
     
     def get_following(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['following']
         fillowing_idx = list(Follow.objects.filter(follower=obj).values_list('following', flat=True))
         return fillowing_idx
     
     def get_follower(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['follower']
         fillower_idx = list(Follow.objects.filter(following=obj).values_list('follower', flat=True))
         return fillower_idx
     
     def get_like(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['like']
         like_idx = list(Like.objects.filter(user=obj).values_list('post', flat=True))
         return like_idx
     
     def get_repost(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['repost']
         repost_idx = list(Repost.objects.filter(user=obj).values_list('post', flat=True))
         return repost_idx
     
@@ -101,22 +135,24 @@ class UserSerializer(serializers.ModelSerializer):
 
 
     
-class MessageUserListSerializer(serializers.ModelSerializer):
+class MessageUserListSerializer(ResponseModelSerializer):
     user_from = UserSerializer()
     user_to = UserSerializer()
 
-    class Meta:
+    class Meta(ResponseModelSerializer.Meta):
         model = Message
         fields = ['id', 'user_from', 'user_to', 'content', 'content_JA', 'content_EN', 'content_ZH', 'created_at']
 
-class MemberListSerializer(serializers.ModelSerializer):
+class MemberListSerializer(ResponseModelSerializer):
     owner = UserSerializer()
     user_ids = serializers.SerializerMethodField()
 
     def get_user_ids(self, obj):
+        if hasattr(obj, '_response_user_ids'):
+            return obj._response_user_ids
         return ListMember.objects.filter(list=obj).values_list('user_id', flat=True)
 
-    class Meta:
+    class Meta(ResponseModelSerializer.Meta):
         model = List
         fields = ['id','name','description','created_at','owner','user_ids']
         read_only_fields = ['created_at','owner']
@@ -125,6 +161,8 @@ class MemberListCreateSerializer(serializers.ModelSerializer):
     user_ids = serializers.SerializerMethodField()
 
     def get_user_ids(self, obj):
+        if hasattr(obj, '_response_user_ids'):
+            return obj._response_user_ids
         return ListMember.objects.filter(list=obj).values_list('user_id', flat=True)
     
     class Meta:
@@ -132,16 +170,16 @@ class MemberListCreateSerializer(serializers.ModelSerializer):
         fields = ['id','name','description','created_at','owner','user_ids']
         read_only_fields = ['created_at','owner']
 
-class MemberListDetailSerializer(serializers.ModelSerializer):
+class MemberListDetailSerializer(ResponseModelSerializer):
     user = UserSerializer()
     #list = MemberListSerializer()
 
-    class Meta:
+    class Meta(ResponseModelSerializer.Meta):
         model = ListMember
         fields = '__all__'
     
 
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(ResponseModelSerializer):
     owner = UserSerializer(read_only=True)
     like_count = serializers.SerializerMethodField()
     repost_count = serializers.SerializerMethodField()
@@ -149,20 +187,24 @@ class PostSerializer(serializers.ModelSerializer):
     repost_created_at = serializers.SerializerMethodField()
     reply_count = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta(ResponseModelSerializer.Meta):
         model = Post
         fields = ['id', 'owner', 'content', 'content_EN', 'content_JA','content_ZH', 'created_at','view_count', 'like_count','repost_count', 'repost_user', 'repost_created_at','reply_count','parent']
         read_only_fields = ['created_at','owner', 'like_count','repost_count']
 
     def get_like_count(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['like_count']
         return Like.objects.filter(post=obj).count()
     
     def get_repost_count(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['repost_count']
         return Repost.objects.filter(post=obj).count()
     
     def get_repost_user(self, obj):
         if hasattr(obj, 'repost'):
-            return UserSerializer(obj.repost.user).data
+            return self.fields['owner'].to_representation(obj.repost.user)
         return None
 
     def get_repost_created_at(self, obj):
@@ -171,6 +213,8 @@ class PostSerializer(serializers.ModelSerializer):
         return None
     
     def get_reply_count(self, obj):
+        if hasattr(obj, '_response_stats'):
+            return obj._response_stats['reply_count']
         return Post.objects.filter(parent=obj).count()
     
     def create(self, validated_data):
@@ -212,13 +256,13 @@ class PostSerializer(serializers.ModelSerializer):
         post.save()
         return post
     
-class NotificationSerializer(serializers.ModelSerializer):
+class NotificationSerializer(ResponseModelSerializer):
     sender = UserSerializer(read_only=True)
     receiver = UserSerializer(read_only=True)
     post = PostSerializer(read_only=True)
     message = MessageSerializer(read_only=True)
     
-    class Meta:
+    class Meta(ResponseModelSerializer.Meta):
         model = Notification
         fields = ['id', 'sender', 'receiver', 'notification_type', 'is_read', 'created_at', 'message', 'post', 'parent']
         read_only_fields = ['sender', 'receiver', 'created_at']
@@ -235,11 +279,11 @@ class FollowSerializer(serializers.ModelSerializer): #idでやり取りのみ
         fields = ['follower','following']
         read_only_fields = ['follower']
 
-class FollowUserDetailSerializer(serializers.ModelSerializer): #フォロー・フォロワー一覧表示用にユーザー情報欲しい
+class FollowUserDetailSerializer(ResponseModelSerializer): #フォロー・フォロワー一覧表示用にユーザー情報欲しい
     follower = UserSerializer()
     following = UserSerializer()
 
-    class Meta:
+    class Meta(ResponseModelSerializer.Meta):
         model = Follow
         fields = ['follower','following']
         read_only_fields = ['follower','following']

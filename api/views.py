@@ -166,7 +166,7 @@ class MessageUserListViewSet(viewsets.ModelViewSet):
         seen_pairs = set()
 
         for message in latest_messages:
-            pair = tuple(sorted([message.user_from.id, message.user_to.id]))
+            pair = tuple(sorted([message.user_from_id, message.user_to_id]))
             if pair not in seen_pairs:
                 seen_pairs.add(pair)
                 unique_messages.append(message)

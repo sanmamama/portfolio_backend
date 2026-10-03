@@ -301,6 +301,19 @@ class Blog(models.Model):
         if update_fields is not None and 'content' in update_fields:
             update_fields.update({'content_html', 'toc_html'})
 
+        render_content = self._state.adding or (update_fields is not None and 'content' in update_fields)
+        if update_fields is None and not self._state.adding:
+            old_content = type(self).objects.using(kwargs.get('using') or self._state.db).filter(
+                pk=self.pk
+            ).values_list('content', flat=True).first()
+            render_content = old_content != self.content
+        if render_content:
+            self.render_content()
+
+        super().save(*args, **kwargs) 
+
+    def render_content(self):
+        """Derive HTML and the table of contents from Markdown."""
         md = markdown.Markdown(
             extensions=['toc', 'fenced_code', 'tables']
         )
@@ -361,7 +374,6 @@ class Blog(models.Model):
         self.content_html = html
         self.toc_html = md.toc
 
-        super().save(*args, **kwargs) 
 
 
 class Comment(models.Model):

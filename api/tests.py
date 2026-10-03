@@ -1,6 +1,14 @@
 from datetime import datetime, timezone
+from io import BytesIO
+from io import StringIO
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
-from django.test import TestCase
+from django.core.cache import cache
+from django.core.management import call_command
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from PIL import Image
 from rest_framework.test import APIClient
 
 from .models import Blog, Category, Tag
@@ -26,6 +34,7 @@ class BlogReadTests(TestCase):
         cls.draft = Blog.objects.create(title='Draft', content='', category=cls.category, is_draft=True)
 
     def setUp(self):
+        cache.clear()
         self.client = APIClient()
 
     def test_bounded_list_and_page_clamping(self):
@@ -106,3 +115,81 @@ class BlogReadTests(TestCase):
         Blog.objects.filter(pk=self.articles[-1].pk).update(content_html='<p>' + 'a' * 99 + '😀</p>')
         item = self.client.get('/api/blog/').json()['results'][0]
         self.assertEqual(item['excerpt'], 'a' * 99 + '\ufffd.....')
+
+    def test_summary_cache_and_edit_invalidation(self):
+        expected = self.client.get('/api/blog/summary/').json()
+        with self.assertNumQueries(0):
+            self.assertEqual(self.client.get('/api/blog/summary/').json(), expected)
+        article = self.articles[0]
+        article.is_draft = True
+        article.save(update_fields=['is_draft'])
+        updated = self.client.get('/api/blog/summary/').json()
+        self.assertEqual(updated['categories'][0][1]['count'], 6)
+        article.tag.clear()
+        self.other.name = 'Renamed'
+        self.other.save()
+        self.assertEqual(self.client.get('/api/blog/summary/').json()['categories'][1][1]['name'], 'Renamed')
+        article.delete()
+        self.assertEqual(self.client.get('/api/blog/summary/').status_code, 200)
+
+    def test_detail_queries_exclude_unused_bodies(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as queries:
+            data = self.client.get(f'/api/blog/{self.articles[6].pk}/').json()
+        self.assertEqual(set(data['related_posts'][0]), {'id', 'title', 'img', 'thumbnail'})
+        body_reads = [query for query in queries if '"content_html"' in query['sql']]
+        self.assertEqual(len(body_reads), 1)
+
+    def test_likes_skip_rendering_and_keep_article_modification_time(self):
+        article = Blog.objects.get(pk=self.articles[0].pk)
+        with patch.object(Blog, 'render_content', side_effect=AssertionError('Unexpected render')):
+            with self.assertNumQueries(4):  # transaction savepoint, update, read, release
+                self.assertEqual(self.client.patch(f'/api/blog/{article.pk}/like/').json()['likes'], 1)
+            self.assertEqual(self.client.patch(f'/api/blog/{article.pk}/like/').json()['likes'], 2)
+        article.refresh_from_db()
+        self.assertEqual(article.content_html, '<p>CaseSensitive &amp; body</p>')
+        before = article.updated_at
+        self.client.patch(f'/api/blog/{article.pk}/like/')
+        article.refresh_from_db()
+        self.assertEqual(article.updated_at, before)
+        self.assertEqual(self.client.patch(f'/api/blog/{self.draft.pk}/like/').status_code, 404)
+
+    def test_render_content_only_for_body_edits(self):
+        article = Blog.objects.get(pk=self.articles[0].pk)
+        with patch.object(Blog, 'render_content', side_effect=AssertionError('Unexpected render')):
+            article.likes += 1
+            article.save(update_fields=['likes'])
+            article.title = 'Renamed'
+            article.save()
+        article.content = '# Heading\n\n:::answer\nAnswer\n:::\n\n![img](/test.png)'
+        article.save(update_fields=['content'])
+        article.refresh_from_db()
+        self.assertIn('answer-box', article.content_html)
+        self.assertIn('img-fluid', article.content_html)
+        self.assertIn('anchor', article.content_html)
+        self.assertIn('Heading', article.toc_html)
+
+    def test_thumbnail_preserves_alpha_and_does_not_regenerate(self):
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            source = BytesIO()
+            Image.new('RGBA', (800, 400), (0, 0, 255, 128)).save(source, format='PNG')
+            article = Blog.objects.create(title='Image', content='', category=self.category,
+                img=SimpleUploadedFile('test.png', source.getvalue(), content_type='image/png'))
+            with article.thumbnail.open('rb') as file, Image.open(file) as thumbnail:
+                self.assertEqual(thumbnail.size, (400, 200))
+                self.assertIn('A', thumbnail.getbands())
+            name = article.thumbnail.name
+            article.title = 'New title'
+            article.save()
+            self.assertEqual(article.thumbnail.name, name)
+
+    def test_legacy_all_is_compatible_and_deprecated(self):
+        response = self.client.get('/api/blog/all/')
+        self.assertEqual(response['Deprecation'], 'true')
+        self.assertEqual(len(response.json()), 15)
+
+    def test_explain_command_runs_on_existing_database(self):
+        output = StringIO()
+        call_command('explain_blog', q='React', stdout=output)
+        self.assertTrue(output.getvalue().strip())

@@ -669,14 +669,13 @@ class ContactCreateView(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 class LikeBlogView(APIView):
     def patch(self, request, pk):
-        try:
-            blog = Blog.objects.get(pk=pk)
-        except Blog.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        blog.likes += 1
-        blog.save()
-        return Response({'likes': blog.likes}, status=status.HTTP_200_OK)
+        from django.db.models import F
+        from django.db import transaction
+        with transaction.atomic():
+            if not Blog.objects.filter(pk=pk, is_draft=False).update(likes=F('likes') + 1):
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            likes = Blog.objects.values_list('likes', flat=True).get(pk=pk)
+        return Response({'likes': likes}, status=status.HTTP_200_OK)
     
 from django.db.models import Case, When, Value, IntegerField
 class BookViewSet(viewsets.ReadOnlyModelViewSet):

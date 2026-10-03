@@ -361,6 +361,12 @@ class BlogSerializer(serializers.ModelSerializer):
             'thumbnail',
         )
 
+class BlogRelatedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blog
+        fields = ('id', 'title', 'img', 'thumbnail')
+
+
 class BlogListSerializer(BlogSerializer):
     excerpt = serializers.SerializerMethodField()
 

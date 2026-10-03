@@ -317,6 +317,21 @@ class BlogSerializer(serializers.ModelSerializer):
             'thumbnail',
         )
 
+class BlogListSerializer(BlogSerializer):
+    excerpt = serializers.SerializerMethodField()
+
+    class Meta(BlogSerializer.Meta):
+        fields = tuple(field for field in BlogSerializer.Meta.fields if field not in ('content_html', 'toc_html')) + ('excerpt',)
+
+    def get_excerpt(self, obj):
+        # Match JavaScript's non-dotAll regex, including its line separators.
+        text = re.sub(r'<[^\n\r\u2028\u2029]*?>', '', obj.content_html or '')
+        text = re.sub(r'&[A-Za-z0-9#]+;', '', text)
+        # JS slice counts UTF-16 code units, including emoji surrogate pairs.
+        encoded = text.encode('utf-16-le', errors='surrogatepass')
+        return (encoded[:200].decode('utf-16-le', errors='replace') + '.....') if len(encoded) > 200 else text
+
+
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact

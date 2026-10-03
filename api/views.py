@@ -4,9 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import mixins,viewsets,permissions
 from rest_framework import generics
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from .filters import BlogFilter
+from .blog_views import BlogFilterViewSet
 from .models import *
 from .serializer import BookSerializer,BlogSerializer,CategorySerializer,TagSerializer,ContactSerializer,UserSerializer,PostSerializer,FollowSerializer,LikeSerializer,FollowUserDetailSerializer,MessageUserListSerializer,MemberListSerializer,MessageSerializer,MemberListDetailSerializer,MemberListCreateSerializer,RepostSerializer,AddMemberSerializer,NotificationSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -654,19 +653,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 #イカ、ブログ#
-
-class BlogFilterViewSet(viewsets.ReadOnlyModelViewSet):
-    #
-    queryset = Blog.objects.filter(is_draft=False).order_by('created_at').reverse()
-    serializer_class = BlogSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = BlogFilter
-
-    @action(detail=False, methods=['get'])
-    def all(self, request):
-        posts = Blog.objects.filter(is_draft=False).order_by('created_at').reverse()
-        serializer = BlogSerializer(posts, many=True)
-        return Response(serializer.data)
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()

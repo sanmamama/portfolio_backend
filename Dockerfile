@@ -1,5 +1,5 @@
 # ベースイメージ
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # 環境変数の設定
 ENV PYTHONDONTWRITEBYTECODE=1
